@@ -55,7 +55,7 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
 <body>
 <section id="start">
   <h1>Scan Cam Live</h1>
-  <p>Point at the subject, walk round it clockwise. The dial shows which angles are done; in auto mode it shoots by itself when you hold still on a new angle.</p>
+  <p>Film a slow circle round the subject (one low, one high) or switch to photos: the dial shows which angles are done and, in photo mode, shoots by itself when you hold still on a new angle.</p>
   <label for="subj">What are you scanning?</label>
   <input id="subj" type="text" maxlength="40" placeholder="Scoopy" autocomplete="off">
   <div class="chips" id="kinds" role="group" aria-label="Kind"></div>
@@ -70,8 +70,8 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
   <div class="bar"><b id="subjT"></b><button class="ghost" id="fin" type="button" style="min-height:40px;padding:0 14px;font-size:14px">Done</button></div><div class="bar" style="top:calc(env(safe-area-inset-top) + 52px);background:none;justify-content:center"><div class="rings" id="rings"></div></div>
   <div class="msg" id="msg" role="status"></div>
   <div class="bot">
-    <div class="side"><button class="ghost auto" id="auto" type="button" aria-pressed="true">Auto on</button><button class="ghost mode" id="mode" type="button" aria-pressed="false">Video</button><button class="ghost" id="front" type="button">Set front</button></div>
-    <button class="shut" id="shut" type="button" aria-label="Take photo"></button>
+    <div class="side"><button class="ghost auto" id="auto" type="button" aria-pressed="true">Auto on</button><button class="ghost mode" id="mode" type="button" aria-pressed="true">Video on</button><button class="ghost" id="lens" type="button">Lens 1x</button><button class="ghost" id="front" type="button">Set front</button></div>
+    <button class="shut rec" id="shut" type="button" aria-label="Start recording"></button>
     <div class="side"><svg id="dial" viewBox="0 0 132 132" aria-hidden="true"></svg></div>
   </div>
 </section>
@@ -88,7 +88,7 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
 const $=id=>document.getElementById(id);
 const RINGS=[{k:'L',n:'Low',how:'Crouch, phone at knee height, level'},{k:'M',n:'Middle',how:'Phone at chest height'},{k:'H',n:'High',how:'Arms up, tilt down at the top'}];
 const KINDS=['Vehicle','Object','Furniture','Building part'];
-const S={stream:null,track:null,ic:null,ring:1,h0:null,head:null,beta:null,rot:[],sharp:[],shots:[],videos:[],auto:true,video:false,rec:null,recT:0,last:0,busy:false,subject:'',kind:'Vehicle',id:'',done:new Set(),hold:0};
+const S={stream:null,track:null,ic:null,ring:1,h0:null,head:null,beta:null,rot:[],sharp:[],shots:[],videos:[],auto:true,video:true,lensIdx:0,backs:[],zoomed:false,lens:null,rec:null,recT:0,last:0,busy:false,subject:'',kind:'Vehicle',id:'',done:new Set(),hold:0};
 const can=document.createElement('canvas'),cx=can.getContext('2d',{willReadFrequently:true});
 const pad=(n,w)=>String(n).padStart(w,'0');
 
@@ -134,7 +134,7 @@ function drawDial(){const C=66;let h='';const R=[[54,64],[41,51],[28,38]],sec=se
 
 function tick(){const now=performance.now();if(!S.stream)return;const sh=sharpNow();if(sh>0){S.sharp.push(sh);if(S.sharp.length>40)S.sharp.shift()}
   const sec=sector(),ok=steady()&&sh>=median(S.sharp)*.7,slot=sec==null?null:key(S.ring,sec),r=RINGS[S.ring];$('ret').classList.toggle('ok',ok&&!S.video);
-  if(S.video){if(S.rec){if(slot)S.done.add(slot);const t=Math.round((now-S.recT)/1000);say('Recording '+t+' s','Walk slowly clockwise. '+r.how+'. One full circle, then tap stop.')}else if(!S.videos.length)say('Video mode','Tap the red button and walk one slow circle (about 40 s). '+r.how+'.')}
+  if(S.video){if(S.rec){if(slot)S.done.add(slot);const t=Math.round((now-S.recT)/1000);say('Recording '+t+' s','Walk slowly clockwise. '+r.how+'. One full circle, then tap stop.')}else if(!S.videos.length)say('Video mode','Tap the red button and walk one slow circle (about 40 s). '+r.how+'. Tap Video for photo mode.')}
   else if(S.head==null)say('Tap the shutter for each angle','No motion sensor found, so the dial can\'t follow you. Side-step clockwise between shots.');
   else if(S.h0==null)say('Face the front of the '+S.subject,'Hold still and tap the shutter. That sets the front.');
   else if(S.done.size>=36)say('All 36 angles done','Tap Done to send, or add close-ups.');
@@ -146,13 +146,27 @@ function tick(){const now=performance.now();if(!S.stream)return;const sh=sharpNo
 
 async function start(){const subj=$('subj').value.trim().replace(/[^A-Za-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,30)||'scan';S.subject=subj;S.id='s'+Date.now().toString(36);$('err').textContent='';
   try{if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function'){try{await DeviceOrientationEvent.requestPermission();await DeviceMotionEvent.requestPermission()}catch(e){}}
-    if(!S.stream)S.stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:3840},height:{ideal:2160}}})}
+    if(!S.stream)await openCam(null)}
   catch(e){$('err').textContent='The camera did not open ('+(e&&e.name||e)+'). Allow camera access for this site in Chrome and try again.';S.stream=null;return}
-  S.track=S.stream.getVideoTracks()[0];if('ImageCapture' in window){try{S.ic=new ImageCapture(S.track)}catch(e){S.ic=null}}
-  $('v').srcObject=S.stream;await $('v').play().catch(()=>{});addEventListener('deviceorientation',onOri);addEventListener('devicemotion',onMot);
+  addEventListener('deviceorientation',onOri);addEventListener('devicemotion',onMot);
   $('subjT').textContent=S.subject;$('start').style.display='none';$('cam').style.display='block';drawDial();tick()}
 
-function manifest(){return {app:'scancam-live',v:2,id:S.id,subject:S.subject,kind:S.kind,createdAt:new Date(parseInt(S.id.slice(1),36)).toISOString(),sentAt:new Date().toISOString(),
+async function openCam(deviceId){if(S.stream)S.stream.getTracks().forEach(t=>t.stop());
+  const v=deviceId?{deviceId:{exact:deviceId}}:{facingMode:{ideal:'environment'}};
+  S.stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{...v,width:{ideal:3840},height:{ideal:2160}}});
+  S.track=S.stream.getVideoTracks()[0];S.ic=null;if('ImageCapture' in window){try{S.ic=new ImageCapture(S.track)}catch(e){}}
+  $('v').srcObject=S.stream;await $('v').play().catch(()=>{});
+  if(!S.backs.length){try{const d=await navigator.mediaDevices.enumerateDevices();S.backs=d.filter(x=>x.kind==='videoinput'&&!/front|user/i.test(x.label))}catch(e){}}
+  lensInfo()}
+function lensInfo(){const st=S.track.getSettings?S.track.getSettings():{};S.lens={label:S.track.label||'',zoom:st.zoom??null,w:st.width||null,h:st.height||null};
+  const caps=S.track.getCapabilities?S.track.getCapabilities():{};const canWide=(caps.zoom&&caps.zoom.min<1)||S.backs.length>1;
+  $('lens').hidden=!canWide;$('lens').textContent=S.zoomed?'Lens '+(st.zoom?(+st.zoom).toFixed(1):'wide')+'x':(S.lensIdx>0?'Lens '+(S.lensIdx+1):'Lens 1x')}
+async function switchLens(){if(S.shots.length||S.videos.length||S.rec){say('Lens is locked for this scan','Keep the same lens for the whole scan. Start a new scan to change it.');return}
+  const caps=S.track.getCapabilities?S.track.getCapabilities():{};
+  try{if(caps.zoom&&caps.zoom.min<1){const z=S.zoomed?1:caps.zoom.min;await S.track.applyConstraints({advanced:[{zoom:z}]});S.zoomed=!S.zoomed;lensInfo();say(S.zoomed?'Wide lens on':'Normal lens','Keep this lens for the whole scan.');return}
+    if(S.backs.length>1){S.lensIdx=(S.lensIdx+1)%S.backs.length;await openCam(S.backs[S.lensIdx].deviceId);say('Back camera '+(S.lensIdx+1)+' of '+S.backs.length,'Tap Lens again until the view is the widest. Keep it for the whole scan.')}}
+  catch(e){say('Could not switch lens',String(e&&e.message||e))}}
+function manifest(){return {app:'scancam-live',v:2,lens:S.lens,id:S.id,subject:S.subject,kind:S.kind,createdAt:new Date(parseInt(S.id.slice(1),36)).toISOString(),sentAt:new Date().toISOString(),
   device:navigator.userAgent.slice(0,160),front:S.h0==null?null:Math.round(S.h0),
   photos:S.shots.map(s=>({file:s.name,slot:s.slot,head:s.head,pitch:s.pitch,sharp:s.sharp})),videos:S.videos.map(v=>({file:v.name,type:v.type,seconds:v.seconds})),
   files:S.shots.length+S.videos.length}}
@@ -170,7 +184,7 @@ async function send(){const files=allFiles(),b=$('send');b.disabled=true;$('save
   b.disabled=false}
 async function save(){const b=$('save');b.disabled=true;const files=allFiles();let n=0;for(const f of files){const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);n++;$('saveMsg').textContent='Saving '+n+' of '+files.length+'…';await new Promise(r=>setTimeout(r,350))}
   S.saved=true;$('saveMsg').textContent='Saved '+n+' files to Downloads. If Chrome asked to allow multiple downloads, tap Allow and press Save again.';b.disabled=false}
-function reset(){S.shots=[];S.videos=[];S.done=new Set();S.h0=null;S.ring=1;S.sent=false;S.saved=false;$('done').style.display='none';$('start').style.display='flex';$('subj').value='';$('saveMsg').textContent=''}
+function reset(){S.zoomed=S.zoomed;S.shots=[];S.videos=[];S.done=new Set();S.h0=null;S.ring=1;S.sent=false;S.saved=false;$('done').style.display='none';$('start').style.display='flex';$('subj').value='';$('saveMsg').textContent=''}
 
 $('kinds').innerHTML=KINDS.map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===S.kind}">${k}</button>`).join('');
 $('kinds').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;S.kind=b.dataset.k;for(const x of $('kinds').children)x.setAttribute('aria-pressed',x===b)});
@@ -178,6 +192,7 @@ $('go').addEventListener('click',start);
 $('shut').addEventListener('click',()=>S.video?toggleRec():shoot());
 $('auto').addEventListener('click',e=>{S.auto=!S.auto;e.currentTarget.setAttribute('aria-pressed',S.auto);e.currentTarget.textContent=S.auto?'Auto on':'Auto off'});
 $('mode').addEventListener('click',e=>{if(S.rec)return;S.video=!S.video;e.currentTarget.setAttribute('aria-pressed',S.video);e.currentTarget.textContent=S.video?'Video on':'Video';$('shut').classList.toggle('rec',S.video);$('shut').setAttribute('aria-label',S.video?'Start recording':'Take photo');drawDial()});
+$('lens').addEventListener('click',switchLens);
 $('front').addEventListener('click',()=>{if(S.head!=null){S.h0=S.head;say('Front set','Now walk clockwise.')}});
 $('rings').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(b){S.ring=+b.dataset.r;drawDial()}});
 $('fin').addEventListener('click',finish);
