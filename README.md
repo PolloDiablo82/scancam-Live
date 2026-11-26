@@ -2,6 +2,14 @@
 
 Live-camera capture page for Scan Lab, live at https://pollodiablo82.github.io/scancam-live/ (repo `PolloDiablo82/scancam-live`, GitHub Pages from `main` root). Artifact pages cannot open the camera or read motion sensors, so this one is hosted outside Claude. Run `python3 tools/secretscan.py <repo> --history` before every push.
 
+v6 (2026-11-26, code review):
+- Fixed: after the first video the Lock button did nothing, and a second scan in the same session kept the first scan's frozen exposure, white balance and focus (the heading log overwrote the camera track). New scan now unlocks.
+- Extra close-ups focus freely (exposure and white balance stay locked), so close-ups are sharp.
+- Done while recording waits for the video before showing the Done screen (Send was greyed out).
+- One camera-analysis loop (each Extra close-ups started another), idle while the camera screen is hidden.
+- Manifest v5: every file's `bytes`; the laptop waits for exact sizes, so a stalled transfer is never built as a short video.
+- **Add to an earlier scan**: on the start screen (recent sends are remembered on the phone), or by filming more after Send (Back to camera, Fill the gaps, Extra close-ups). It goes out as a follow-up scan with its own id and `addTo: <first scan id>`; nothing is sent twice, and the laptop combines it with everything it already has for that scan.
+
 v5 (2026-11-26):
 - **Coverage map** on the Done screen: the four rings as a dial, green = angles covered, red = angles a required ring missed (Vehicle and Object need Low, Middle and High; Top is optional), plus a checklist of the close-ups a vehicle needs (Mirror detail, Steering column, Underside, Exhaust). **Fill the gaps** goes back to the camera on the ring that misses most. The manifest gets `coverage` (per ring done/of, close-ups, missing list).
 - While filming with Auto on, the ring follows the phone's tilt: level or tilted up = Low, a little down = Middle, well down = High, nearly straight down = Top. Each video records `track` in the manifest: `[seconds, heading from front, tilt]` about twice a second, so the laptop knows which angles each part of the video saw.
