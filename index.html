@@ -44,7 +44,10 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
 .side button{min-height:44px;padding:0 12px;font-size:14px}
 .auto[aria-pressed=true],.lock[aria-pressed=true]{background:var(--done);color:#fff}
 #done{position:fixed;inset:0;display:none;flex-direction:column;gap:14px;padding:calc(env(safe-area-inset-top) + 20px) 20px 24px;overflow:auto;max-width:560px;margin:0 auto}
-#done h1{font-size:30px;margin:0}
+#done h1,#extra h1{font-size:30px;margin:0}
+#extra{position:fixed;inset:0;display:none;flex-direction:column;gap:14px;padding:calc(env(safe-area-inset-top) + 20px) 20px 24px;overflow:auto;max-width:560px;margin:0 auto}
+#extra label{color:#b9c0cc}
+#extrasL{color:#b9c0cc;font-size:15px}
 #done p{color:#b9c0cc;margin:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px}
 .grid img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;display:block}
@@ -81,11 +84,21 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
   </div>
 </section>
 
+<section id="extra" aria-label="Extra close-ups">
+  <h1>Extra close-ups</h1>
+  <p class="how">Close-ups of a part the walk-around misses: thin, shiny or hidden parts. Name the part, then take photos (or a short video) moving around it, half a step between shots, the part filling about half the screen. Keep a bit of the rest of the object in view so the laptop can place them.</p>
+  <label for="xlab">Which part?</label>
+  <input id="xlab" type="text" maxlength="40" placeholder="mirror detail" autocomplete="off">
+  <div class="chips" id="xchips" role="group" aria-label="Part"></div>
+  <div class="row"><button id="xgo" type="button">Open camera</button><button class="ghost" id="xback" type="button">Back</button></div>
+</section>
+
 <section id="done">
   <h1 id="doneT"></h1>
   <p id="doneP"></p>
-  <div class="row"><button id="send" type="button" style="flex-basis:100%;min-height:60px;font-size:18px">Send to Scan Lab</button><button class="ghost" id="save" type="button">Save to phone</button><button class="ghost" id="more" type="button">Back to camera</button><button class="ghost" id="newScan" type="button">New scan</button></div>
+  <div class="row"><button id="send" type="button" style="flex-basis:100%;min-height:60px;font-size:18px">Send to Scan Lab</button><button class="ghost" id="save" type="button">Save to phone</button><button class="ghost" id="extraBtn" type="button" style="flex-basis:100%">+ Extra close-ups</button><button class="ghost" id="more" type="button">Back to camera</button><button class="ghost" id="newScan" type="button">New scan</button></div>
   <p id="saveMsg" role="status"></p>
+  <div id="extrasL"></div>
   <div class="grid" id="grid"></div>
 </section>
 <script>
@@ -99,7 +112,11 @@ const MODES={orbit:{n:'Walk around',how:'You walk round the subject. Film slow c
   turntable:{n:'Turntable',how:'The phone stays still (on a stand, propped against a book) and you turn the subject a little at a time, or film it while it spins. It shoots by itself each time the subject has turned and is still again. Plain background, even light, no shadows moving across it. Do a second pass with the subject on its side to get the bottom.'}};
 const SLICES=36,TT_TARGET=36;
 const S={stream:null,track:null,ic:null,ring:1,h0:null,head:null,beta:null,rot:[],sharp:[],shots:[],videos:[],auto:true,video:true,lensIdx:0,backs:[],zoomed:false,lens:null,rec:null,recT:0,last:0,busy:false,subject:'',kind:'Vehicle',mode:'orbit',id:'',done:new Set(),hold:0,
-  pass:1,locked:null,lockTried:false,thumbPrev:null,thumbShot:null,still:0,photoMax:null};
+  pass:1,locked:null,lockTried:false,thumbPrev:null,thumbShot:null,still:0,photoMax:null,extra:null,extras:[],autoWas:true};
+/* v4 (2026-11-26, Adam): extra close-ups. After the main scan, '+ Extra close-ups' asks which part (steering column, mirror
+   detail, ...) and opens the camera for hand-shot close-ups of it. Files carry _x-<part>_ in their name and 'extra' in the
+   manifest; the laptop adds them to the same scan (always in the dense detail views) and keeps the labels. */
+const XCHIPS=['Mirror detail','Steering column','Wheels','Lights','Logo','Underside','Seat','Exhaust'];
 const can=document.createElement('canvas'),cx=can.getContext('2d',{willReadFrequently:true});
 const pad=(n,w)=>String(n).padStart(w,'0');
 const TT=()=>S.mode==='turntable';
@@ -144,10 +161,10 @@ async function autoLock(){if(!S.lockTried){S.lockTried=true;await lockCam(true)}
 async function shoot(){if(S.busy)return;S.busy=true;await autoLock();if(S.h0==null&&S.head!=null)S.h0=S.head;
   const s=TT()?null:sector(),ring=S.ring,sharp=Math.round(median(S.sharp.slice(-3)));$('ret').classList.add('snap');try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}
   try{const blob=await grab();if(!blob)throw new Error('no image');const n=S.shots.length+1;
-    const slot=TT()?'T'+S.pass+pad(passShots()+1,2):(s==null?null:key(ring,s));
+    const slot=S.extra?'x-'+S.extra.slug:(TT()?'T'+S.pass+pad(passShots()+1,2):(s==null?null:key(ring,s)));
     const head=S.head==null?null:Math.round(S.head),pitch=S.beta==null?null:Math.round(S.beta);
-    S.shots.push({blob,slot,n,head,pitch,sharp,pass:S.pass,name:`${base()}_${slot||'X'+pad(n,2)}_${pad(n,3)}_h${head==null?'na':head}_p${pitch==null?'na':pitch}.jpg`});
-    if(slot&&!TT())S.done.add(slot);S.last=performance.now();S.thumbShot=S.thumbPrev}
+    S.shots.push({blob,slot,n,head,pitch,sharp,pass:S.pass,extra:S.extra?S.extra.label:undefined,name:`${base()}_${slot||'X'+pad(n,2)}_${pad(n,3)}_h${head==null?'na':head}_p${pitch==null?'na':pitch}.jpg`});
+    if(S.extra)S.extra.photos++;else if(slot&&!TT())S.done.add(slot);S.last=performance.now();S.thumbShot=S.thumbPrev}
   catch(e){say('Could not take the photo',String(e&&e.message||e))}
   setTimeout(()=>$('ret').classList.remove('snap'),160);S.busy=false;drawDial()}
 
@@ -157,9 +174,9 @@ async function toggleRec(){if(S.rec){S.rec.stop();return}
   await autoLock();if(S.h0==null&&S.head!=null)S.h0=S.head;const mime=recMime(),chunks=[];let r;
   try{r=new MediaRecorder(S.stream,mime?{mimeType:mime,videoBitsPerSecond:40e6}:{videoBitsPerSecond:40e6})}catch(e){say('Could not start recording',String(e&&e.message||e));return}
   r.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-  const ring=S.ring,pass=S.pass;
+  const ring=S.ring,pass=S.pass,xt=S.extra;
   r.onstop=()=>{const type=(r.mimeType||mime||'video/webm').split(';')[0],ext=type.includes('mp4')?'mp4':'webm',n=S.videos.length+1,sec=Math.round((performance.now()-S.recT)/100)/10;
-    S.videos.push({blob:new Blob(chunks,{type}),type,seconds:sec,ring:TT()?null:RINGS[ring].k,pass:TT()?pass:null,name:`${base()}_video${n}.${ext}`});S.rec=null;$('shut').classList.remove('on');$('shut').setAttribute('aria-label','Start recording');
+    S.videos.push({blob:new Blob(chunks,{type}),type,seconds:sec,ring:(TT()||xt)?null:RINGS[ring].k,pass:TT()?pass:null,extra:xt?xt.label:undefined,name:xt?`${base()}_x-${xt.slug}_video${n}.${ext}`:`${base()}_video${n}.${ext}`});if(xt)xt.videos++;S.rec=null;$('shut').classList.remove('on');$('shut').setAttribute('aria-label','Start recording');
     say('Video saved ('+sec+' s)',TT()?'Turn the subject onto its side and film another turn (Next pass), or tap Done.':'Film another circle at a different height, or tap Done.');drawDial()};
   r.start(1000);S.rec=r;S.recT=performance.now();$('shut').classList.add('on');$('shut').setAttribute('aria-label','Stop recording')}
 
@@ -178,6 +195,9 @@ function drawDial(){const C=66;let h='';
   $('rings').innerHTML=RINGS.map((r,i)=>{const n=[...S.done].filter(k=>k[0]===r.k).length;return `<button type="button" data-r="${i}" aria-pressed="${i===S.ring}">${r.n} ${n}/${ringSlices(i)}</button>`}).join('')}
 
 function tick(){const now=performance.now();if(!S.stream)return;const L=look();if(L&&L.sharp>0){S.sharp.push(L.sharp);if(S.sharp.length>40)S.sharp.shift()}
+  if(S.extra){if(S.rec)say('Recording '+Math.round((now-S.recT)/1000)+' s','Move slowly around the '+S.extra.label.toLowerCase()+', then tap stop.');
+    else say('Close-ups: '+S.extra.label,(S.extra.photos?S.extra.photos+' photos. ':'')+'Fill about half the screen with it, keep some of the rest in view. Tap the shutter, half a step, again. Done when finished.');
+    setTimeout(tick,250);return}
   if(TT()){tickTurntable(now,L);drawDial();setTimeout(tick,180);return}
   const sh=L?L.sharp:0,sec=sector(),ok=steady()&&sh>=median(S.sharp)*.7,slot=sec==null?null:key(S.ring,sec),r=RINGS[S.ring],n=ringSlices(S.ring);$('ret').classList.toggle('ok',ok&&!S.video);
   if(S.video){if(S.rec){if(slot)S.done.add(slot);const t=Math.round((now-S.recT)/1000);say('Recording '+t+' s','Walk slowly clockwise. '+r.how+'. One full circle, then tap stop.')}else if(!S.videos.length)say('Video mode','Tap the red button and walk one slow circle (about 60 s). '+r.how+'. Tap Video for photo mode.')}
@@ -232,26 +252,32 @@ async function switchLens(){if(S.shots.length||S.videos.length||S.rec){say('Lens
     if(S.backs.length>1){S.lensIdx=(S.lensIdx+1)%S.backs.length;await openCam(S.backs[S.lensIdx].deviceId);say('Back camera '+(S.lensIdx+1)+' of '+S.backs.length,'Tap Lens again until the view is the widest. Keep it for the whole scan.')}}
   catch(e){say('Could not switch lens',String(e&&e.message||e))}}
 function manifest(){const passes=[...new Set([...S.shots.map(s=>s.pass),...S.videos.map(v=>v.pass)].filter(p=>p!=null))].sort();
-  return {app:'scancam-live',v:3,mode:S.mode,slices:SLICES,lens:S.lens,lock:S.locked,id:S.id,subject:S.subject,kind:S.kind,createdAt:new Date(parseInt(S.id.slice(1),36)).toISOString(),sentAt:new Date().toISOString(),
+  return {app:'scancam-live',v:4,mode:S.mode,slices:SLICES,lens:S.lens,lock:S.locked,id:S.id,subject:S.subject,kind:S.kind,createdAt:new Date(parseInt(S.id.slice(1),36)).toISOString(),sentAt:new Date().toISOString(),
   device:navigator.userAgent.slice(0,160),front:S.h0==null?null:Math.round(S.h0),passes:TT()?passes:undefined,
-  photos:S.shots.map(s=>({file:s.name,slot:s.slot,head:s.head,pitch:s.pitch,sharp:s.sharp,pass:TT()?s.pass:undefined})),videos:S.videos.map(v=>({file:v.name,type:v.type,seconds:v.seconds,ring:v.ring,pass:v.pass})),
+  photos:S.shots.map(s=>({file:s.name,slot:s.slot,head:s.head,pitch:s.pitch,sharp:s.sharp,pass:TT()?s.pass:undefined,extra:s.extra})),videos:S.videos.map(v=>({file:v.name,type:v.type,seconds:v.seconds,ring:v.ring,pass:v.pass,extra:v.extra})),
+  extras:S.extras.filter(x=>x.photos||x.videos).map(x=>({label:x.label,slug:x.slug,photos:x.photos,videos:x.videos})),
   files:S.shots.length+S.videos.length}}
 function allFiles(){const m=new File([JSON.stringify(manifest(),null,1)],`${base()}_scan.json`,{type:'application/json'});
   return [...S.shots.map(s=>new File([s.blob],s.name,{type:'image/jpeg'})),...S.videos.map(v=>new File([v.blob],v.name,{type:v.type})),m]}
 
-function finish(){if(S.rec)S.rec.stop();$('cam').style.display='none';$('done').style.display='flex';const nv=S.videos.length;
+function finish(){if(S.rec)S.rec.stop();if(S.extra)endExtra();$('cam').style.display='none';$('done').style.display='flex';const nv=S.videos.length;
+  const xs=S.extras.filter(x=>x.photos||x.videos);$('extrasL').textContent=xs.length?'Extras: '+xs.map(x=>x.label+' ('+(x.photos?x.photos+' photos':'')+(x.photos&&x.videos?', ':'')+(x.videos?x.videos+' video':'')+')').join(' · '):'';
   $('doneT').textContent=(S.shots.length?S.shots.length+' photos':'')+(S.shots.length&&nv?' + ':'')+(nv?nv+' video'+(nv>1?'s':''):'')+(S.shots.length||nv?'':'Nothing yet')+' · '+S.subject;
   const cov=TT()?(S.shots.length?'Passes: '+[...new Set(S.shots.map(s=>s.pass))].length+'. ':''):(S.shots.length?S.done.size+' of '+(SLICES*3+12)+' angles covered. ':'');
   $('doneP').textContent=cov+'Tap Send to Scan Lab, pick LocalSend and Laptop Scan Lab. The laptop builds the model from there (it has to be on and on the home Wi-Fi).';
   $('grid').innerHTML='';for(const s of S.shots.slice(-120)){if(!s.url)s.url=URL.createObjectURL(s.blob);const i=document.createElement('img');i.src=s.url;i.alt=s.slot||'extra';$('grid').append(i)}
   $('send').disabled=!(S.shots.length||nv)}
-async function send(){const files=allFiles(),b=$('send');b.disabled=true;$('saveMsg').textContent='Opening the share menu…';
+async function send(){const files=allFiles(),b=$('send');
+  const mb=files.reduce((a,f)=>a+f.size,0)/1e6;
+  if(mb>250){$('saveMsg').textContent='This scan is '+Math.round(mb)+' MB: too big for the share menu (Android loses big files there). Saving to the phone instead…';await save();
+    $('saveMsg').textContent='Saved to Downloads ('+Math.round(mb)+' MB). Now open the LocalSend app → Send → File, pick these files ('+base()+'…) and send them to Laptop Scan Lab.';return}
+  b.disabled=true;$('saveMsg').textContent='Opening the share menu…';
   try{if(!navigator.canShare||!navigator.canShare({files}))throw new Error('unsupported');await navigator.share({files,title:'Scan '+S.subject});S.sent=true;$('saveMsg').textContent='Sent '+files.length+' files. The laptop builds the model by itself. Tell Claude "scan" for the result.'}
   catch(e){if(e&&e.name==='AbortError')$('saveMsg').textContent='Cancelled. Nothing was sent.';else $('saveMsg').textContent='Sharing files is not available here ('+(e&&e.message||e)+'). Use Save to phone, then send the files with LocalSend.'}
   b.disabled=false}
 async function save(){const b=$('save');b.disabled=true;const files=allFiles();let n=0;for(const f of files){const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);n++;$('saveMsg').textContent='Saving '+n+' of '+files.length+'…';await new Promise(r=>setTimeout(r,350))}
   S.saved=true;$('saveMsg').textContent='Saved '+n+' files to Downloads. If Chrome asked to allow multiple downloads, tap Allow and press Save again.';b.disabled=false}
-function reset(){S.shots=[];S.videos=[];S.done=new Set();S.h0=null;S.ring=1;S.pass=1;S.thumbShot=null;S.sent=false;S.saved=false;$('done').style.display='none';$('start').style.display='flex';$('subj').value='';$('saveMsg').textContent=''}
+function reset(){S.extra=null;S.extras=[];$('extrasL').textContent='';S.shots=[];S.videos=[];S.done=new Set();S.h0=null;S.ring=1;S.pass=1;S.thumbShot=null;S.sent=false;S.saved=false;$('done').style.display='none';$('start').style.display='flex';$('subj').value='';$('saveMsg').textContent=''}
 
 function drawModes(){$('modes').innerHTML=Object.entries(MODES).map(([k,m])=>`<button type="button" data-m="${k}" aria-pressed="${k===S.mode}">${m.n}</button>`).join('');$('howT').textContent=MODES[S.mode].how}
 drawModes();
@@ -273,6 +299,21 @@ $('more').addEventListener('click',()=>{$('done').style.display='none';$('cam').
 $('send').addEventListener('click',send);$('save').addEventListener('click',save);
 $('newScan').addEventListener('click',()=>{if((S.shots.length||S.videos.length)&&!S.sent&&!S.saved&&!S.confirmNew){S.confirmNew=true;$('saveMsg').textContent='This scan is not sent or saved yet. Tap New scan again to throw it away.';setTimeout(()=>S.confirmNew=false,4000);return}S.confirmNew=false;reset()});
 addEventListener('beforeunload',e=>{if((S.shots.length||S.videos.length)&&!S.sent&&!S.saved){e.preventDefault();e.returnValue=''}});
+function drawX(){$('xchips').innerHTML=XCHIPS.map(c=>`<button type="button" data-x="${c}">${c}</button>`).join('')}
+drawX();
+$('xchips').addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;$('xlab').value=b.dataset.x;for(const x of $('xchips').children)x.setAttribute('aria-pressed',x===b)});
+$('extraBtn').addEventListener('click',()=>{$('done').style.display='none';$('extra').style.display='flex';$('xlab').value=''});
+$('xback').addEventListener('click',()=>{$('extra').style.display='none';$('done').style.display='flex'});
+$('xgo').addEventListener('click',async()=>{const label=($('xlab').value.trim()||'detail').slice(0,40);
+  const slug=label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,24)||'detail';
+  let x=S.extras.find(e=>e.slug===slug);if(!x){x={label,slug,photos:0,videos:0};S.extras.push(x)}
+  S.extra=x;S.autoWas=S.auto;S.auto=false;$('auto').setAttribute('aria-pressed',false);$('auto').textContent='Auto off';
+  if(S.video){S.video=false;$('mode').setAttribute('aria-pressed',false);$('mode').textContent='Video';$('shut').classList.remove('rec');$('shut').setAttribute('aria-label','Take photo')}
+  if(!S.stream){try{await openCam(null)}catch(e){$('saveMsg').textContent='The camera did not open.';return}}
+  $('rings').style.display='none';$('dial').style.display='none';$('front').hidden=true;
+  $('subjT').textContent=S.subject+' · extra: '+label;$('extra').style.display='none';$('cam').style.display='block';tick()});
+function endExtra(){S.extra=null;S.auto=S.autoWas;$('auto').setAttribute('aria-pressed',S.auto);$('auto').textContent=S.auto?'Auto on':'Auto off';
+  $('rings').style.display='';$('dial').style.display='';$('front').hidden=TT();$('subjT').textContent=S.subject+(TT()?' · turntable':'')}
 window.__S=S;
 }
 </script>

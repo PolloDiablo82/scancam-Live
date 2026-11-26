@@ -2,6 +2,10 @@
 
 Live-camera capture page for Scan Lab, live at https://pollodiablo82.github.io/scancam-live/ (repo `PolloDiablo82/scancam-live`, GitHub Pages from `main` root). Artifact pages cannot open the camera or read motion sensors, so this one is hosted outside Claude. Run `python3 tools/secretscan.py <repo> --history` before every push.
 
+v4 (2026-11-26):
+- **Extra close-ups** (Adam's idea): on the done screen, `+ Extra close-ups` asks which part (chips: Mirror detail, Steering column, Wheels, Lights, Logo, Underside, Seat, Exhaust, or type a name) and opens the camera with auto-shoot off for hand-shot close-ups (photos or a short video). Files are named `..._x-<part>_...`, carry `extra` in the manifest, and the manifest lists `extras`. Scan Lab adds them to the same scan and always gives them depth maps (detail views).
+- Big scans (over 250 MB) skip the share menu, which loses big files on Android ("Failed to open .../cache/..."): Send saves them to Downloads and says to send them from the LocalSend app.
+
 v3 (2026-11-26):
 - Two modes on the start screen. **Walk around**: you circle the subject. **Turntable**: the phone stays still and the subject turns (bags, shoes, small things); it shoots by itself each time the picture has changed since the last shot and has been still for 0.4 s (48x36 grey thumbnail difference). **Next pass** = the subject on its side for the bottom. Photos are named `..._T<pass><nn>_...`; the manifest says `mode: "turntable"` and Scan Lab then masks the background out before matching.
 - Denser guide: 36 slices a ring (10 degrees) on Low / Middle / High plus a Top ring of 12 (phone over the subject, pointing down). Order Middle -> High -> Low -> Top.
