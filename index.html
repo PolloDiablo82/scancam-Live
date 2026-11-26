@@ -15,15 +15,24 @@
 *{box-sizing:border-box;min-width:0}
 html,body{margin:0;height:100%;background:#000;color:#fff;font:16px/1.4 system-ui,-apple-system,Roboto,sans-serif;overflow:hidden}
 button{font:600 16px system-ui,Roboto,sans-serif;min-height:48px;padding:0 18px;border-radius:14px;border:0;background:#fff;color:#111;cursor:pointer}
-button:focus-visible,input:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
-button[hidden]{display:none}
+button:disabled{opacity:.45}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
+button[hidden],[hidden]{display:none!important}
+a{color:#9fb2ff}
 .ghost{background:var(--glass);color:#fff;border:1.5px solid rgba(255,255,255,.25)}
-#start{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:24px max(24px,env(safe-area-inset-left));max-width:520px;margin:0 auto;overflow:auto}
-#start h1{font-size:36px;line-height:1.05;margin:0}
-#start p{color:#b9c0cc;margin:0}
-#start input{font:16px system-ui,sans-serif;padding:14px;border-radius:14px;border:1.5px solid #333;background:#111;color:#fff;width:100%}
-#start .err{color:var(--hot)}
-#start .how{font-size:15px}
+.page{position:fixed;inset:0;display:none;flex-direction:column;gap:14px;padding:calc(env(safe-area-inset-top) + 20px) max(20px,env(safe-area-inset-left)) 28px;overflow:auto;max-width:560px;margin:0 auto}
+#start{display:flex}
+.page h1{font-size:34px;line-height:1.05;margin:0}
+.page h2{font-size:19px;margin:6px 0 0}
+.page p{color:#b9c0cc;margin:0}
+.page label{color:#dde2ea;font-weight:600;margin-bottom:-6px}
+.page input[type=text],.page input[type=number],.page select{font:16px system-ui,sans-serif;padding:13px;border-radius:14px;border:1.5px solid #333;background:#111;color:#fff;width:100%;min-height:48px}
+.page .err{color:var(--hot)}
+.how{font-size:15px}
+.tip{font-size:14px;background:#14171c;border-radius:12px;padding:10px 12px;color:#dde2ea!important}
+.box{background:#14171c;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.box b{font-size:17px}
+.row2{display:flex;gap:8px;align-items:center}.row2>*{flex:1}.row2>button,.row2>span{flex:none}
 #cam{position:fixed;inset:0;display:none}
 video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
 .bar{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;display:flex;gap:8px;align-items:center;background:linear-gradient(#000a,#0000)}
@@ -36,45 +45,82 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
 .msg{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 108px);text-align:center;font-weight:600;text-shadow:0 1px 3px #000}
 .msg small{display:block;font-weight:400;color:#dde2ea}
 .lockchip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 178px);white-space:nowrap;font-size:12px;padding:4px 10px;border-radius:12px;background:var(--glass);border:1px solid rgba(255,255,255,.25)}
-.bot{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(env(safe-area-inset-bottom) + 14px);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;background:linear-gradient(#0000,#000b)}
+.bot{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(env(safe-area-inset-bottom) + 14px);display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px;background:linear-gradient(#0000,#000b)}
 #dial{width:132px;height:132px;justify-self:center}
-.shut{width:76px;height:76px;border-radius:50%;padding:0;background:#fff;border:5px solid rgba(255,255,255,.4);background-clip:padding-box}
+.shut{width:76px;height:76px;border-radius:50%;padding:0;background:#fff;border:5px solid rgba(255,255,255,.4);background-clip:padding-box;align-self:center}
 .shut:active{transform:scale(.94)}
 .side{display:flex;flex-direction:column;gap:8px}
 .side button{min-height:44px;padding:0 12px;font-size:14px}
 .auto[aria-pressed=true],.lock[aria-pressed=true]{background:var(--done);color:#fff}
-#done{position:fixed;inset:0;display:none;flex-direction:column;gap:14px;padding:calc(env(safe-area-inset-top) + 20px) 20px 24px;overflow:auto;max-width:560px;margin:0 auto}
-#done h1,#extra h1{font-size:30px;margin:0}
-#extra{position:fixed;inset:0;display:none;flex-direction:column;gap:14px;padding:calc(env(safe-area-inset-top) + 20px) 20px 24px;overflow:auto;max-width:560px;margin:0 auto}
-#extra label{color:#b9c0cc}
-#extrasL{color:#b9c0cc;font-size:15px}
-#done p{color:#b9c0cc;margin:0}
+.sheet{position:absolute;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom) + 8px);max-width:520px;margin:0 auto;background:rgba(10,12,16,.92);border:1.5px solid rgba(255,255,255,.2);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;max-height:70%;overflow:auto}
+.sheet h2{margin:0;font-size:18px}.sheet p{margin:0;color:#dde2ea;font-size:14px}
 .cov{display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:#14171c;border-radius:14px;padding:14px}
 .cov svg{width:150px;height:150px;flex:none}
-.cov ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:15px;flex:1 1 200px}
-.cov li b{display:inline-block;width:22px}.cov .ok{color:#7fe08a}.cov .no{color:var(--hot)}.cov .opt{color:#b9c0cc}
+.cov ul,.plain{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:15px;flex:1 1 200px}
+.cov li b{display:inline-block;width:22px}.ok{color:#7fe08a}.no{color:var(--hot)}.opt{color:#b9c0cc}
 .cov h2{font-size:17px;margin:0 0 6px;flex-basis:100%}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px}
 .grid img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;display:block}
 .row{display:flex;gap:10px;flex-wrap:wrap}.row button{flex:1 1 40%}
-.chips{display:flex;gap:8px;flex-wrap:wrap}.chips button{min-height:44px;border-radius:22px;background:#1a1d23;color:#fff;border:1.5px solid #333;font-size:15px}.chips button[aria-pressed=true]{background:var(--done);border-color:var(--done)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips button{min-height:44px;border-radius:22px;background:#1a1d23;color:#fff;border:1.5px solid #333;font-size:15px;padding:0 14px}.chips button[aria-pressed=true]{background:var(--done);border-color:var(--done)}
+.room{background:#14171c;border-radius:14px;padding:12px;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+.room b{font-size:17px}.room small{display:block;color:#b9c0cc;font-size:14px}.room button{min-height:44px;padding:0 14px;font-size:15px}
 .shut.rec{background:#e5322d}.shut.on{border-radius:22px;width:64px;height:64px;margin:6px}
 .mode[aria-pressed=true]{background:#e5322d;color:#fff}
 @media (prefers-reduced-motion:reduce){.ret{transition:none}}
 </style>
 </head>
 <body>
-<section id="start">
+<section id="start" class="page">
   <h1>Scan Cam Live</h1>
-  <div class="chips" id="modes" role="group" aria-label="How you scan"></div>
+  <div class="box" id="projBox"></div>
+  <label>What are you scanning?</label>
+  <div class="chips" id="recipes" role="group" aria-label="What you scan"></div>
   <p class="how" id="howT"></p>
-  <label for="subj">What are you scanning?</label>
+  <p class="tip" id="lensAdv"></p>
+  <label for="subj">Name</label>
   <input id="subj" type="text" maxlength="40" placeholder="Scoopy" autocomplete="off">
-  <div class="chips" id="kinds" role="group" aria-label="Kind"></div>
-  <div id="pastBox" hidden><label>Or add to an earlier scan (the laptop combines them)</label><div class="chips" id="pastL" role="group" aria-label="Earlier scans"></div></div>
-  <button id="go" type="button">Open camera</button>
+  <label>Detail</label>
+  <div class="chips" id="details" role="group" aria-label="Detail level"></div>
+  <p class="how" id="detT"></p>
+  <div id="sizeBox"><label for="sizeV">Real size (optional): one measurement</label>
+    <div class="row2" style="margin-top:12px"><select id="sizeD" aria-label="Which measurement"></select><input id="sizeV" type="number" inputmode="decimal" min="1" max="5000" step="0.5" placeholder="cm" aria-label="Centimetres"></div></div>
+  <div id="matBox" class="box" hidden><div class="chips"><button type="button" id="matT" aria-pressed="false">Standing on the marker mat</button></div>
+    <p class="how">The mat gives the exact size and steady alignment, even on plain leather. <a href="mat.pdf" target="_blank" rel="noopener">Print the mat (A4)</a>, put the subject in the middle circle, the mat on the stand so it turns with it.</p></div>
+  <div id="pastBox" hidden><label>Or add to an earlier scan (the laptop combines them)</label><div class="chips" id="pastL" role="group" aria-label="Earlier scans" style="margin-top:12px"></div></div>
+  <div class="row"><button id="go" type="button">Open camera</button><button class="ghost" id="impGo" type="button">Import from camera app</button></div>
   <p class="err" id="err" role="alert"></p>
   <p>Shoot in shade or even light. When you're done, tap Send to Scan Lab and pick LocalSend, device Laptop Scan Lab. The laptop builds the model by itself.</p>
+</section>
+
+<section id="proj" class="page" aria-label="Project">
+  <h1 id="projT"></h1>
+  <p class="how" id="projP">Each room: Loop 1 and Loop 2 (big or L-shaped rooms also Middle), then send it. Then film a doorway walk from a finished room into the next one, so the laptop can join the rooms into one house.</p>
+  <div id="rooms" style="display:grid;gap:8px"></div>
+  <label for="roomN">Add a room</label>
+  <div class="row2" style="margin-top:12px"><input id="roomN" type="text" maxlength="30" placeholder="Living room" autocomplete="off"><button id="roomAdd" type="button">Add</button></div>
+  <div class="chips" id="roomChips"></div>
+  <h2>Doorways</h2>
+  <p class="how" id="linkP"></p>
+  <ul class="plain" id="links"></ul>
+  <div class="row2"><select id="lkFrom" aria-label="From room"></select><span>→</span><select id="lkTo" aria-label="Into room"></select></div>
+  <button class="ghost" id="lkGo" type="button">Film this doorway</button>
+  <label>Detail for every room</label>
+  <div class="chips" id="pdetails" role="group" aria-label="Project detail"></div>
+  <div class="row"><button id="projFin" type="button" style="flex-basis:100%">Finish house: send the plan</button><button class="ghost" id="projBack" type="button">Back</button><button class="ghost" id="projDel" type="button">Delete project</button></div>
+  <p id="projMsg" role="status"></p>
+</section>
+
+<section id="imp" class="page" aria-label="Import from camera app">
+  <h1>Import from camera app</h1>
+  <p class="how" id="impP"></p>
+  <label id="impRingL">Which part is it</label>
+  <div class="chips" id="impRing" role="group" aria-label="Part of the scan"></div>
+  <label>Lens you filmed with</label>
+  <div class="chips" id="impLens" role="group" aria-label="Lens"></div>
+  <input id="impF" type="file" accept="video/*,image/*" multiple hidden>
+  <div class="row"><button id="impPick" type="button">Choose videos or photos</button><button class="ghost" id="impBack" type="button">Back</button></div>
+  <ul class="plain" id="impL"></ul>
 </section>
 
 <section id="cam" aria-label="Camera">
@@ -84,26 +130,32 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
   <div class="lockchip" id="lockT" hidden></div>
   <div class="msg" id="msg" role="status"></div>
   <div class="bot">
-    <div class="side"><button class="ghost auto" id="auto" type="button" aria-pressed="true">Auto on</button><button class="ghost mode" id="mode" type="button" aria-pressed="true">Video on</button><button class="ghost" id="lens" type="button">Lens 1x</button><button class="ghost" id="front" type="button">Set front</button><button class="ghost" id="pass" type="button" hidden>Next pass</button></div>
+    <div class="side"><button class="ghost auto" id="auto" type="button" aria-pressed="true">Auto on</button><button class="ghost mode" id="mode" type="button" aria-pressed="true">Video on</button><button class="ghost" id="lens" type="button">Lens</button><button class="ghost" id="front" type="button">Set front</button><button class="ghost" id="timeT" type="button" hidden>Time turn</button><button class="ghost" id="pass" type="button" hidden>Next pass</button></div>
     <button class="shut rec" id="shut" type="button" aria-label="Start recording"></button>
     <div class="side"><svg id="dial" viewBox="0 0 132 132" aria-hidden="true"></svg><button class="ghost lock" id="lock" type="button" aria-pressed="false">Lock</button></div>
   </div>
+  <div class="sheet" id="lenses" hidden role="dialog" aria-label="Lens">
+    <h2>Lens</h2>
+    <div class="chips" id="lensL"></div>
+    <p id="lensInfo"></p>
+    <button id="lensOk" type="button">Use this lens</button>
+  </div>
 </section>
 
-<section id="extra" aria-label="Extra close-ups">
+<section id="extra" class="page" aria-label="Extra close-ups">
   <h1>Extra close-ups</h1>
-  <p class="how">Close-ups of a part the walk-around misses: thin, shiny or hidden parts. Name the part, then take photos (or a short video) moving around it, half a step between shots, the part filling about half the screen. Keep a bit of the rest of the object in view so the laptop can place them.</p>
+  <p class="how">Close-ups of a part the main scan misses: thin, shiny or hidden parts, logos. Name the part, then take photos (or a short video) moving around it, half a step between shots, the part filling about half the screen. Keep a bit of the rest of the object in view so the laptop can place them.</p>
   <label for="xlab">Which part?</label>
   <input id="xlab" type="text" maxlength="40" placeholder="mirror detail" autocomplete="off">
   <div class="chips" id="xchips" role="group" aria-label="Part"></div>
   <div class="row"><button id="xgo" type="button">Open camera</button><button class="ghost" id="xback" type="button">Back</button></div>
 </section>
 
-<section id="done">
+<section id="done" class="page">
   <h1 id="doneT"></h1>
   <p id="doneP"></p>
   <div class="cov" id="cov" hidden></div>
-  <div class="row"><button id="send" type="button" style="flex-basis:100%;min-height:60px;font-size:18px">Send to Scan Lab</button><button class="ghost" id="save" type="button">Save to phone</button><button class="ghost" id="gaps" type="button" style="flex-basis:100%" hidden>Fill the gaps</button><button class="ghost" id="extraBtn" type="button" style="flex-basis:100%">+ Extra close-ups</button><button class="ghost" id="more" type="button">Back to camera</button><button class="ghost" id="newScan" type="button">New scan</button></div>
+  <div class="row"><button id="send" type="button" style="flex-basis:100%;min-height:60px;font-size:18px">Send to Scan Lab</button><button class="ghost" id="save" type="button">Save to phone</button><button class="ghost" id="gaps" type="button" style="flex-basis:100%" hidden>Fill the gaps</button><button class="ghost" id="extraBtn" type="button" style="flex-basis:100%">+ Extra close-ups</button><button class="ghost" id="impMore" type="button" style="flex-basis:100%">+ Import from camera app</button><button class="ghost" id="more" type="button">Back to camera</button><button class="ghost" id="newScan" type="button">New scan</button><button class="ghost" id="projRet" type="button" style="flex-basis:100%" hidden>Back to project</button></div>
   <p id="saveMsg" role="status"></p>
   <div id="extrasL"></div>
   <div class="grid" id="grid"></div>
@@ -113,17 +165,9 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
 const $=id=>document.getElementById(id);
 /* v3 (2026-11-26): turntable mode, 36 slices a ring (10 deg) + a top ring, full-sensor stills, exposure/white balance/focus lock,
    40 Mbit/s video. The laptop builds from as many photos as you send, so the guide asks for more of them. */
-const RINGS=[{k:'L',n:'Low',how:'Crouch, phone at knee height, tilted up a little'},{k:'M',n:'Middle',how:'Phone at chest height'},{k:'H',n:'High',how:'Arms up, tilt down 30 to 45 degrees'},{k:'T',n:'Top',how:'Phone high over it, pointing almost straight down'}];
-const KINDS=['Vehicle','Object','Furniture','Building part'];
-const MODES={orbit:{n:'Walk around',how:'You walk round the subject. Film slow circles (low, middle, high, over the top) or take photos: the dial shows which angles are done and shoots by itself when you hold still on a new angle.'},
-  turntable:{n:'Turntable',how:'The phone stays still (on a stand, propped against a book) and you turn the subject a little at a time, or film it while it spins. It shoots by itself each time the subject has turned and is still again. Plain background, even light, no shadows moving across it. Do a second pass with the subject on its side to get the bottom.'}};
-const SLICES=36,TT_TARGET=36;
-const S={stream:null,track:null,ic:null,ring:1,h0:null,head:null,beta:null,rot:[],sharp:[],shots:[],videos:[],auto:true,video:true,lensIdx:0,backs:[],zoomed:false,lens:null,rec:null,recT:0,last:0,busy:false,subject:'',kind:'Vehicle',mode:'orbit',id:'',done:new Set(),hold:0,
-  pass:1,trackLog:[],trackT:0,ticking:false,addTo:null,finishAfterStop:false,locked:null,lockTried:false,thumbPrev:null,thumbShot:null,still:0,photoMax:null,extra:null,extras:[],autoWas:true};
 /* v4 (2026-11-26, Adam): extra close-ups. After the main scan, '+ Extra close-ups' asks which part (steering column, mirror
    detail, ...) and opens the camera for hand-shot close-ups of it. Files carry _x-<part>_ in their name and 'extra' in the
    manifest; the laptop adds them to the same scan (always in the dense detail views) and keeps the labels. */
-const XCHIPS=['Mirror detail','Steering column','Wheels','Lights','Logo','Underside','Seat','Exhaust'];
 /* v5 (2026-11-26, Adam: "go for all of it"): coverage. While filming with Auto on, the ring follows the phone's tilt
    (level or tilted up = Low, a little down = Middle, well down = High, nearly straight down = Top), every video keeps a
    track of heading and tilt (manifest videos[].track, about 2 a second), and the Done screen shows a coverage map: red =
@@ -134,24 +178,87 @@ const XCHIPS=['Mirror detail','Steering column','Wheels','Lights','Logo','Unders
    focus freely (exposure and white balance stay locked); Done while recording waits for the video; one analysis loop, paused
    off the camera screen; every file's byte size in the manifest (the laptop waits for exact sizes); 'Add to an earlier scan'
    and filming more after Send make a follow-up scan (own id, addTo = the first scan) that the laptop combines by itself. */
+/* v7 (2026-11-26, Adam: "universal help in scanning", house room by room, the 0.6 lens, a bag on a motor stand, polygon budget):
+   - Recipes: Room, Vehicle, Furniture, Object, Building part, Turntable (by hand), Motor stand. Each sets mode, kind, the
+     lens to use, the coverage it needs and the tips.
+   - Detail level (Hero / Game / Background / Low-poly / Showcase): how much the guide asks for, and the laptop's default
+     build and ship budget (manifest 'detail').
+   - Real size: one measurement in cm (manifest 'size'), for things without a spec sheet. Marker mat for turntables ('mat').
+   - Room mode (inside out): you walk along the walls facing into the room; the dial shows the directions you faced. Loop 1
+     chest height tilted a little down, Loop 2 head height tilted a little up, Middle for big rooms.
+   - House projects: rooms with their loops, doorway clips between rooms (link scans), saved on the phone; every send carries
+     'project'; 'Finish house' sends sc_<project>_<name>_project.json so the laptop builds the whole house.
+   - Lens sheet: every back camera Chrome can open, and zoom under 1x where the phone allows it. Xiaomi and Poco keep the 0.6
+     for their own camera app, so: Import from camera app (videos or photos filmed there, original names kept, 'imported',
+     'lens': wide|main, the part of the scan they are).
+   - Motor stand: time one turn with two taps on Front, then 36 photos in one turn on their own (each with its angle) or a
+     video of exactly one turn; passes Level, High, Bottom. */
+const RINGS=[{k:'L',n:'Low',how:'Crouch, phone at knee height, tilted up a little'},{k:'M',n:'Middle',how:'Phone at chest height'},{k:'H',n:'High',how:'Arms up, tilt down 30 to 45 degrees'},{k:'T',n:'Top',how:'Phone high over it, pointing almost straight down'}];
+const ROOM_RINGS=[{k:'R1',n:'Loop 1',how:'Chest height, tilted a little down'},{k:'R2',n:'Loop 2',how:'Head height, tilted a little up'},{k:'R3',n:'Middle',how:'Walk once through the middle of the room, turning slowly'}];
+const LINK_RINGS=[{k:'D',n:'Doorway',how:'Phone forward at chest height'}];
+const RECIPES={
+  room:{n:'Room',mode:'room',kind:'Room',detail:'game',lens:'wide',size:['ceiling height'],
+    how:'Inside a room. Walk along the walls with the phone facing across the room: Loop 1 at chest height tilted a little down, Loop 2 at head height tilted a little up. Never spin on the spot in the middle: that gives no depth. Lights on, doors open, nothing moving.'},
+  vehicle:{n:'Vehicle',mode:'orbit',kind:'Vehicle',detail:'game',lens:'main',size:[],
+    how:'Walk slow circles round it: middle, high, low, then over the top. Film or take photos: the dial shows which angles are done and shoots by itself when you hold still on a new angle.'},
+  furniture:{n:'Furniture',mode:'orbit',kind:'Furniture',detail:'game',lens:'main',size:['width','height','depth'],
+    how:'Walk round it at three heights. Pull it a little away from the wall if you can, so the back is seen too.'},
+  object:{n:'Object',mode:'orbit',kind:'Object',detail:'game',lens:'main',size:['width','height','depth'],
+    how:'Walk round it at three heights, about an arm and a half away. Put it on a table or box so the low ring sees under its edge.'},
+  building:{n:'Building part',mode:'orbit',kind:'Building part',detail:'background',lens:'main',size:['width','height'],
+    how:'A wall, gate or shopfront: walk along it and round its corners at chest height, then again with the phone high.'},
+  turntable:{n:'Turntable',mode:'turntable',kind:'Object',detail:'game',lens:'main',size:['width','height','depth'],mat:true,
+    how:'The phone stays still (on a stand, propped against a book) and you turn the subject a little at a time. It shoots by itself each time the subject has turned and is still again. Plain background, even light. Second pass with the subject on its side for the bottom.'},
+  motor:{n:'Motor stand',mode:'motor',kind:'Object',detail:'showcase',lens:'main',size:['width','height','depth'],mat:true,
+    how:'For a motor turntable. Phone on a stand, about 1 m away. Tap Front twice to time one turn, then it takes 36 photos in one turn by itself. Three passes: level, high, then on its back for the bottom. Soft even light from two sides, no sun, a plain background in a different colour. Stuff a bag so it keeps its shape, handles up.'}};
+const DETAIL={hero:{n:'Hero',spec:'Up to 90k triangles, 4K texture. Every ring, the top and close-ups: for main things seen up close.'},
+  game:{n:'Game',spec:'30k triangles, 2K texture. Low, middle and high rings: most game props and vehicles.'},
+  background:{n:'Background',spec:'10k triangles, 1K texture. Middle and high rings are enough: scenery seen from a distance.'},
+  lowpoly:{n:'Low-poly',spec:'3k triangles, 512 px texture. Two quick circles: small or far-away things, phone games.'},
+  showcase:{n:'Showcase',spec:'Up to 150k triangles, 4K texture, for a 3D product viewer on a web page. Every angle, the bottom and close-ups of logos and hardware.'}};
+const ROOM_CHIPS=['Living room','Kitchen','Bedroom','Bathroom','Hallway','Shop','Carport','Garden'];
+const XCHIPS={Vehicle:['Mirror detail','Steering column','Wheels','Lights','Logo','Underside','Seat','Exhaust'],
+  Object:['Logo','Hardware','Handle','Stitching','Inside','Underside'],Furniture:['Underside','Handles','Back'],
+  'Building part':['Door','Window','Sign'],Room:['Window','Door','Shelf','Ceiling lamp']};
+const MOTOR_PASSES=[{n:'Level',how:'Phone level with the middle of the subject, about 1 m away'},{n:'High',how:'Raise the phone and tilt it down about 40 degrees, same distance'},{n:'Bottom',how:'Lay it on its back or side in the middle of the stand'}];
+const SLICES=36,TT_TARGET=36,MOTOR_N=36;
+const S={stream:null,track:null,ic:null,ring:1,h0:null,head:null,beta:null,rot:[],sharp:[],shots:[],videos:[],auto:true,video:true,lensIdx:0,backs:[],zoomed:false,lens:null,rec:null,recT:0,last:0,busy:false,subject:'',kind:'Vehicle',mode:'orbit',id:'',done:new Set(),hold:0,
+  pass:1,trackLog:[],trackT:0,ticking:false,addTo:null,finishAfterStop:false,locked:null,lockTried:false,thumbPrev:null,thumbShot:null,still:0,photoMax:null,extra:null,extras:[],autoWas:true,
+  recipe:'vehicle',detail:'game',size:null,mat:false,proj:null,link:null,turn:{T:null,t0:null,tap1:null,needFront:false},mbins:{},mvid:{},run:null,impPass:new Set(),impRing:null,impLens:'main',lensWide:false};
 const NEED={Vehicle:{rings:['L','M','H'],extras:['Mirror detail','Steering column','Underside','Exhaust']},
   Object:{rings:['L','M','H'],extras:[]},Furniture:{rings:['L','M','H'],extras:['Underside']},'Building part':{rings:['M','H'],extras:[]}};
 const ringFromTilt=b=>b==null?null:(b>=84?0:b>=62?1:b>=25?2:3);
+const roomRingFromTilt=b=>b==null?null:(b>=97?1:0);
+const tiltRing=(b=S.beta)=>ROOM()?roomRingFromTilt(b):ringFromTilt(b);
 const can=document.createElement('canvas'),cx=can.getContext('2d',{willReadFrequently:true});
 const pad=(n,w)=>String(n).padStart(w,'0');
-const TT=()=>S.mode==='turntable';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const slug=s=>String(s||'').trim().replace(/[^A-Za-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,30);
+const TT=()=>S.mode==='turntable'||S.mode==='motor';
+const MOT=()=>S.mode==='motor';
+const ROOM=()=>S.mode==='room';
+const R=()=>S.link?LINK_RINGS:ROOM()?ROOM_RINGS:RINGS;
+const passesNeeded=()=>({lowpoly:1,background:2,game:2,hero:3,showcase:3})[S.detail]||2;
+const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+function show(id){for(const s of ['start','proj','imp','cam','extra','done'])$(s).style.display=s===id?(s==='cam'?'block':'flex'):'none'}
+const buzz=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
 
 /* heading of the back camera from device orientation (W3C example formula) */
-function heading(a,b,g){const r=Math.PI/180,cX=Math.cos(b*r),cY=Math.cos(g*r),cZ=Math.cos(a*r),sX=Math.sin(b*r),sY=Math.sin(g*r),sZ=Math.sin(a*r);const Vx=-cZ*sY-sZ*sX*cY,Vy=-sZ*sY+cZ*sX*cY;let h=Math.atan(Vx/Vy);if(Vy<0)h+=Math.PI;else if(Vx<0)h+=2*Math.PI;return h/r}
+function heading(a,b,g){const r=Math.PI/180,cY=Math.cos(g*r),cZ=Math.cos(a*r),sX=Math.sin(b*r),sY=Math.sin(g*r),sZ=Math.sin(a*r),cX=Math.cos(b*r);const Vx=-cZ*sY-sZ*sX*cY,Vy=-sZ*sY+cZ*sX*cY;let h=Math.atan(Vx/Vy);if(Vy<0)h+=Math.PI;else if(Vx<0)h+=2*Math.PI;return h/r}
 function onOri(e){if(e.alpha==null)return;S.head=heading(e.alpha,e.beta,e.gamma);S.beta=e.beta}
 function onMot(e){const r=e.rotationRate;if(!r)return;const m=Math.hypot(r.alpha||0,r.beta||0,r.gamma||0);S.rot.push([performance.now(),m]);while(S.rot.length&&S.rot[0][0]<performance.now()-400)S.rot.shift()}
 const steady=()=>S.rot.length<3?S.head==null:S.rot.every(x=>x[1]<18);
-const ringSlices=r=>RINGS[r].k==='T'?12:SLICES;
+const ringSlices=r=>(!ROOM()&&!S.link&&RINGS[r]&&RINGS[r].k==='T')?12:SLICES;
 const sector=()=>{if(S.head==null||S.h0==null)return null;const n=ringSlices(S.ring),w=360/n;return Math.floor((((S.head-S.h0)%360+360+w/2)%360)/w)};
 const median=a=>{if(!a.length)return 0;const b=[...a].sort((x,y)=>x-y);return b[b.length>>1]};
-const key=(r,s)=>RINGS[r].k+pad(s+1,2);
+const key=(r,s)=>ROOM()||S.link?R()[r].k+'-'+pad(s+1,2):R()[r].k+pad(s+1,2);
+const ringOf=k=>k.includes('-')?k.split('-')[0]:k.replace(/\d+$/,'');
+const ringDone=(r)=>[...S.done].filter(k=>ringOf(k)===R()[r].k).length;
 const base=()=>`sc_${S.id}_${S.subject}`;
 const passShots=()=>S.shots.filter(s=>s.pass===S.pass).length;
+const angleNow=()=>S.turn.T&&S.turn.t0!=null?((((performance.now()-S.turn.t0)/1000/S.turn.T)*360)%360+360)%360:null;
+const bins=p=>S.mbins[p]||(S.mbins[p]=new Set());
 
 /* one frame, small: sharpness (Laplacian variance) and a 48x36 grey thumbnail for turntable change detection */
 function look(){const v=$('v'),w=v.videoWidth,h=v.videoHeight;if(!w)return null;const sc=256/Math.max(w,h),cw=Math.round(w*sc),ch=Math.round(h*sc);can.width=cw;can.height=ch;cx.drawImage(v,0,0,cw,ch);const d=cx.getImageData(0,0,cw,ch).data,g=new Float32Array(cw*ch);for(let i=0;i<g.length;i++)g[i]=.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2];let n=0,s=0,q=0;for(let y=1;y<ch-1;y++)for(let x=1;x<cw-1;x++){const i=y*cw+x,l=4*g[i]-g[i-1]-g[i+1]-g[i-cw]-g[i+cw];s+=l;q+=l*l;n++}const m=s/n;
@@ -169,7 +276,7 @@ async function lockCam(on){const t=S.track;if(!t||!t.getCapabilities)return;cons
       if((caps.exposureMode||[]).includes('manual')&&st.exposureTime){const e={exposureMode:'manual',exposureTime:st.exposureTime};if(caps.iso&&st.iso)e.iso=st.iso;adv.push(e);got.push('exposure')}
       else if(caps.exposureCompensation){adv.push({exposureCompensation:st.exposureCompensation||0})}
       if((caps.whiteBalanceMode||[]).includes('manual')){const w={whiteBalanceMode:'manual'};if(caps.colorTemperature&&st.colorTemperature)w.colorTemperature=st.colorTemperature;adv.push(w);got.push('white balance')}
-      if((caps.focusMode||[]).includes('manual')&&st.focusDistance!=null){adv.push({focusMode:'manual',focusDistance:st.focusDistance});got.push('focus')}
+      if(!ROOM()&&(caps.focusMode||[]).includes('manual')&&st.focusDistance!=null){adv.push({focusMode:'manual',focusDistance:st.focusDistance});got.push('focus')}
       for(const a of adv){try{await t.applyConstraints({advanced:[a]})}catch(e){}}
       S.locked=got.length?{what:got,exposureTime:st.exposureTime??null,iso:st.iso??null,colorTemperature:st.colorTemperature??null,focusDistance:st.focusDistance??null}:{what:[]};
     }else{const adv=[];for(const k of ['exposureMode','whiteBalanceMode','focusMode'])if((caps[k]||[]).includes('continuous'))adv.push({[k]:'continuous'});for(const a of adv){try{await t.applyConstraints({advanced:[a]})}catch(e){}}S.locked=null}}
@@ -182,42 +289,54 @@ async function focusFree(on){const t=S.track;if(!t||!t.getCapabilities||!S.locke
       else if(S.locked.focusDistance!=null)await t.applyConstraints({advanced:[{focusMode:'manual',focusDistance:S.locked.focusDistance}]})}catch(e){}}
 async function autoLock(){if(!S.lockTried){S.lockTried=true;await lockCam(true)}}
 
-async function shoot(){if(S.busy)return;S.busy=true;await autoLock();if(S.h0==null&&S.head!=null)S.h0=S.head;
-  const s=TT()?null:sector(),ring=S.ring,sharp=Math.round(median(S.sharp.slice(-3)));$('ret').classList.add('snap');try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}
+async function shoot(mo){if(S.busy)return;S.busy=true;await autoLock();if(S.h0==null&&S.head!=null)S.h0=S.head;
+  const s=TT()?null:sector(),ring=S.ring,sharp=Math.round(median(S.sharp.slice(-3)));$('ret').classList.add('snap');buzz(40);
   try{const blob=await grab();if(!blob)throw new Error('no image');const n=S.shots.length+1;
-    const slot=S.extra?'x-'+S.extra.slug:(TT()?'T'+S.pass+pad(passShots()+1,2):(s==null?null:key(ring,s)));
+    const slot=S.extra?'x-'+S.extra.slug:(mo?'T'+S.pass+pad(mo.bin+1,2):TT()?'T'+S.pass+pad(passShots()+1,2):(s==null?null:key(ring,s)));
     const head=S.head==null?null:Math.round(S.head),pitch=S.beta==null?null:Math.round(S.beta);
-    S.shots.push({blob,slot,n,head,pitch,sharp,pass:S.pass,extra:S.extra?S.extra.label:undefined,name:`${base()}_${slot||'X'+pad(n,2)}_${pad(n,3)}_h${head==null?'na':head}_p${pitch==null?'na':pitch}.jpg`});
-    if(S.extra)S.extra.photos++;else if(slot&&!TT())S.done.add(slot);S.last=performance.now();S.thumbShot=S.thumbPrev}
+    S.shots.push({blob,slot,n,head,pitch,sharp,pass:S.pass,angle:mo?Math.round(mo.angle*10)/10:undefined,extra:S.extra?S.extra.label:undefined,name:`${base()}_${slot||'X'+pad(n,2)}_${pad(n,3)}_h${head==null?'na':head}_p${pitch==null?'na':pitch}.jpg`});
+    if(S.extra)S.extra.photos++;else if(mo){if(mo.ok)bins(S.pass).add(mo.bin)}else if(slot&&!TT())S.done.add(slot);S.last=performance.now();S.thumbShot=S.thumbPrev}
   catch(e){say('Could not take the photo',String(e&&e.message||e))}
   setTimeout(()=>$('ret').classList.remove('snap'),160);S.busy=false;drawDial()}
 
 function recMime(){for(const m of ['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'])try{if(MediaRecorder.isTypeSupported(m))return m}catch(e){}return ''}
 async function toggleRec(){if(S.rec){S.rec.stop();return}
   if(!window.MediaRecorder){say('Video recording is not supported here','Use photo mode.');return}
+  if(MOT()&&!S.turn.T){say('Time one turn first','Tap Front when the front faces the camera, and again when it comes round.');return}
   await autoLock();if(S.h0==null&&S.head!=null)S.h0=S.head;const mime=recMime(),chunks=[];let r;
+  if(S.auto&&!S.link&&!TT()&&!S.extra){const rt=tiltRing();if(rt!=null&&!(ROOM()&&S.ring===2))S.ring=rt}S.lastSec=null;
   try{r=new MediaRecorder(S.stream,mime?{mimeType:mime,videoBitsPerSecond:40e6}:{videoBitsPerSecond:40e6})}catch(e){say('Could not start recording',String(e&&e.message||e));return}
   r.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-  const ring=S.ring,pass=S.pass,xt=S.extra;
+  const ring=S.ring,pass=S.pass,xt=S.extra,turn=MOT()?{seconds:Math.round(S.turn.T*100)/100,startAngle:Math.round(angleNow()*10)/10}:undefined;
   r.onstop=()=>{const type=(r.mimeType||mime||'video/webm').split(';')[0],ext=type.includes('mp4')?'mp4':'webm',n=S.videos.length+1,sec=Math.round((performance.now()-S.recT)/100)/10;
-    S.videos.push({blob:new Blob(chunks,{type}),type,seconds:sec,ring:(TT()||xt)?null:RINGS[ring].k,track:(TT()||xt)?undefined:S.trackLog.slice(),pass:TT()?pass:null,extra:xt?xt.label:undefined,name:xt?`${base()}_x-${xt.slug}_video${n}.${ext}`:`${base()}_video${n}.${ext}`});if(xt)xt.videos++;S.rec=null;$('shut').classList.remove('on');$('shut').setAttribute('aria-label','Start recording');
-    say('Video saved ('+sec+' s)',TT()?'Turn the subject onto its side and film another turn (Next pass), or tap Done.':'Film another circle at a different height, or tap Done.');drawDial();
+    let rk=(TT()||xt)?null:R()[ring].k;
+    if(rk&&S.auto&&!S.link&&S.trackLog.length>4&&!(ROOM()&&ring===2)){const c={};for(const t of S.trackLog){const q=tiltRing(t[2]);if(q!=null)c[q]=(c[q]||0)+1}const best=Object.entries(c).sort((a,b)=>b[1]-a[1])[0];if(best)rk=R()[+best[0]].k}
+    S.videos.push({blob:new Blob(chunks,{type}),type,seconds:sec,ring:rk,track:(TT()||xt)?undefined:S.trackLog.slice(),pass:TT()?pass:null,turn,extra:xt?xt.label:undefined,name:xt?`${base()}_x-${xt.slug}_video${n}.${ext}`:`${base()}_video${n}.${ext}`});
+    if(xt)xt.videos++;if(MOT()&&sec>=S.turn.T*.95)S.mvid[pass]=true;if(TT()&&!MOT())S.impPass.add(pass);
+    if(S.link)for(let k=0;k<SLICES;k++)S.done.add(key(0,k));
+    S.rec=null;$('shut').classList.remove('on');$('shut').setAttribute('aria-label','Start recording');
+    say('Video saved ('+sec+' s)',S.link?'Tap Done.':TT()?(S.pass<passesNeeded()?'Tap Next pass.':'Tap Done, or Next pass for more.'):ROOM()?'Film the other loop, or tap Done.':'Film another circle at a different height, or tap Done.');drawDial();
     if(S.finishAfterStop){S.finishAfterStop=false;finish()}};
   r.start(1000);S.rec=r;S.recT=performance.now();S.trackLog=[];S.trackT=0;$('shut').classList.add('on');$('shut').setAttribute('aria-label','Stop recording')}
 
 function say(a,b){const m=$('msg');m.textContent=a;if(b){const s=document.createElement('small');s.textContent=b;m.append(s)}}
+function arcs(C,R0,R1,n,fill,stroke){let h='';const w=360/n;for(let k=0;k<n;k++){const a0=(-90+k*w-w/2+.6)*Math.PI/180,a1=(-90+k*w+w/2-.6)*Math.PI/180,p=(rr,a)=>(C+rr*Math.cos(a)).toFixed(1)+' '+(C+rr*Math.sin(a)).toFixed(1);
+  h+=`<path d="M${p(R1,a0)}A${R1} ${R1} 0 0 1 ${p(R1,a1)}L${p(R0,a1)}A${R0} ${R0} 0 0 0 ${p(R0,a0)}Z" fill="${fill(k)}" ${stroke?stroke(k):''}/>`}return h}
 function drawDial(){const C=66;let h='';
+  if(MOT()){const np=Math.max(passesNeeded(),S.pass),RR=[[54,64],[43,52],[32,41],[21,30]];
+    for(let p=1;p<=Math.min(np,4);p++){const b=bins(p),full=S.mvid[p];h+=arcs(C,RR[p-1][0],RR[p-1][1],MOTOR_N,k=>full||b.has(k)?'var(--done)':'rgba(255,255,255,.22)')+''}
+    const a=angleNow();if(a!=null){const t=(a-90)*Math.PI/180;h+=`<line x1="${C}" y1="${C}" x2="${(C+64*Math.cos(t)).toFixed(1)}" y2="${(C+64*Math.sin(t)).toFixed(1)}" stroke="var(--hot)" stroke-width="3"/>`}
+    h+=`<text x="${C}" y="${C+6}" text-anchor="middle" font-size="16" font-weight="700" fill="#fff" stroke="#000" stroke-width=".6">${S.rec?'REC':S.video?(S.mvid[S.pass]?'✓':'P'+S.pass):bins(S.pass).size}</text>`;
+    $('dial').innerHTML=h;$('rings').innerHTML=Array.from({length:Math.max(passesNeeded(),S.pass)},(_,i)=>`<button type="button" aria-pressed="${i+1===S.pass}" tabindex="-1">${(MOTOR_PASSES[i]||{n:'Pass '+(i+1)}).n} ${S.mvid[i+1]?'✓':bins(i+1).size+'/36'}</button>`).join('');return}
   if(TT()){const n=passShots(),f=Math.min(1,n/TT_TARGET),a=-Math.PI/2+f*2*Math.PI,lg=f>.5?1:0;
     h+=`<circle cx="${C}" cy="${C}" r="56" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="10"/>`;
     if(f>0)h+=f>=1?`<circle cx="${C}" cy="${C}" r="56" fill="none" stroke="var(--done)" stroke-width="10"/>`:`<path d="M${C} ${C-56}A56 56 0 ${lg} 1 ${(C+56*Math.cos(a)).toFixed(1)} ${(C+56*Math.sin(a)).toFixed(1)}" fill="none" stroke="var(--done)" stroke-width="10"/>`;
     h+=`<text x="${C}" y="${C+2}" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">${S.video?(S.rec?'REC':S.videos.filter(v=>v.pass===S.pass).length+'v'):n}</text><text x="${C}" y="${C+22}" text-anchor="middle" font-size="12" fill="#dde2ea">pass ${S.pass}</text>`;
     $('dial').innerHTML=h;$('rings').innerHTML='';return}
-  const sec=sector();
-  const R=[[54,64],[43,52],[32,41],[21,30]];
-  for(let r=0;r<RINGS.length;r++){const n=ringSlices(r),w=360/n;for(let k=0;k<n;k++){const a0=(-90+k*w-w/2+.6)*Math.PI/180,a1=(-90+k*w+w/2-.6)*Math.PI/180,[r0,r1]=R[r],p=(rr,a)=>(C+rr*Math.cos(a)).toFixed(1)+' '+(C+rr*Math.sin(a)).toFixed(1);
-    const done=S.done.has(key(r,k)),here=r===S.ring&&k===sec;h+=`<path d="M${p(r1,a0)}A${r1} ${r1} 0 0 1 ${p(r1,a1)}L${p(r0,a1)}A${r0} ${r0} 0 0 0 ${p(r0,a0)}Z" fill="${done?'var(--done)':'rgba(255,255,255,.22)'}" ${here?'stroke="var(--hot)" stroke-width="2.5"':''} opacity="${r===S.ring?1:.55}"/>`}}
+  const sec=sector(),RS=R(),RR=[[54,64],[43,52],[32,41],[21,30]];
+  for(let r=0;r<RS.length;r++){const n=ringSlices(r);h+=`<g opacity="${r===S.ring?1:.55}">`+arcs(C,RR[r][0],RR[r][1],n,k=>S.done.has(key(r,k))?'var(--done)':'rgba(255,255,255,.22)',k=>r===S.ring&&k===sec?'stroke="var(--hot)" stroke-width="2.5"':'')+'</g>'}
   h+=`<text x="${C}" y="${C+6}" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">${S.video?(S.rec?'REC':S.videos.length+'v'):S.shots.length}</text>`;$('dial').innerHTML=h;
-  $('rings').innerHTML=RINGS.map((r,i)=>{const n=[...S.done].filter(k=>k[0]===r.k).length;return `<button type="button" data-r="${i}" aria-pressed="${i===S.ring}">${r.n} ${n}/${ringSlices(i)}</button>`}).join('')}
+  $('rings').innerHTML=S.link?'':RS.map((r,i)=>`<button type="button" data-r="${i}" aria-pressed="${i===S.ring}">${r.n} ${ringDone(i)}/${ringSlices(i)}</button>`).join('')}
 
 function startTick(){if(S.ticking)return;S.ticking=true;tick()}
 function tick(){const now=performance.now();if(!S.stream){S.ticking=false;return}
@@ -226,158 +345,364 @@ function tick(){const now=performance.now();if(!S.stream){S.ticking=false;return
   if(S.extra){if(S.rec)say('Recording '+Math.round((now-S.recT)/1000)+' s','Move slowly around the '+S.extra.label.toLowerCase()+', then tap stop.');
     else say('Close-ups: '+S.extra.label,(S.extra.photos?S.extra.photos+' photos. ':'')+'Fill about half the screen with it, keep some of the rest in view. Tap the shutter, half a step, again. Done when finished.');
     setTimeout(tick,250);return}
+  if(MOT()){tickMotor(now,L);drawDial();setTimeout(tick,120);return}
   if(TT()){tickTurntable(now,L);drawDial();setTimeout(tick,180);return}
-  const sh=L?L.sharp:0,sec=sector(),ok=steady()&&sh>=median(S.sharp)*.7,slot=sec==null?null:key(S.ring,sec),r=RINGS[S.ring],n=ringSlices(S.ring);$('ret').classList.toggle('ok',ok&&!S.video);
-  if(S.video&&S.rec&&S.auto){const rt=ringFromTilt(S.beta);if(rt!=null&&rt!==S.ring)S.ring=rt}
+  const sh=L?L.sharp:0,sec=sector(),ok=steady()&&sh>=median(S.sharp)*.7,slot=sec==null?null:key(S.ring,sec),r=R()[S.ring],n=ringSlices(S.ring);$('ret').classList.toggle('ok',ok&&!S.video);
+  if(S.video&&S.rec&&S.auto&&!S.link){const rt=tiltRing();if(rt!=null&&rt!==S.ring&&!(ROOM()&&S.ring===2)){S.ring=rt;S.lastSec=null}}
   if(S.video&&S.rec&&S.head!=null&&S.h0!=null&&now-(S.trackT||0)>480){S.trackT=now;S.trackLog.push([Math.round((now-S.recT)/100)/10,Math.round(((S.head-S.h0)%360+360)%360),S.beta==null?null:Math.round(S.beta)])}
-  if(S.video){if(S.rec){const sl2=sector()==null?null:key(S.ring,sector());if(sl2)S.done.add(sl2);const t=Math.round((now-S.recT)/1000);say('Recording '+t+' s','Walk slowly clockwise. '+r.how+'. One full circle, then tap stop.')}else if(!S.videos.length)say('Video mode','Tap the red button and walk one slow circle (about 60 s). '+r.how+'. Tap Video for photo mode.')}
-  else if(S.head==null)say('Tap the shutter for each angle','No motion sensor found, so the dial can\'t follow you. Side-step clockwise between shots, about 10 degrees.');
-  else if(S.h0==null)say('Face the front of the '+S.subject,'Hold still and tap the shutter. That sets the front.');
-  else if(S.done.size>=SLICES*3+12)say('Every angle done','Tap Done to send, or add close-ups of details.');
-  else if(S.done.has(slot))say('Keep walking clockwise',r.how+'. Stop at the next grey slice.');
+  if(S.link){const t=S.rec?Math.round((now-S.recT)/1000):0;say(S.rec?'Recording '+t+' s':'Doorway: '+S.link.from+' → '+S.link.to,S.rec?'Walk slowly through the door, phone forward. A few steps into '+S.link.to+', then stop.':'Stand a few steps inside '+S.link.from+', facing the door. Tap record, walk slowly through into '+S.link.to+' (10 to 20 s), then stop.')}
+  else if(S.video){if(S.rec){const sc=sector();if(sc!=null){const n2=ringSlices(S.ring);let d=S.lastSec==null?0:((sc-S.lastSec+n2+n2/2)%n2)-n2/2;if(Math.abs(d)>n2/4)d=0;for(let j=0;j<=Math.abs(d);j++)S.done.add(key(S.ring,((S.lastSec==null?sc:S.lastSec)+Math.sign(d)*j+n2)%n2));S.lastSec=sc}const t=Math.round((now-S.recT)/1000);
+      say('Recording '+t+' s',ROOM()?'Walk slowly along the walls, phone facing across the room. '+r.how+'. All the way round, then stop.':'Walk slowly clockwise. '+r.how+'. One full circle, then tap stop.')}
+    else if(!S.videos.length)say(ROOM()?'Room: '+r.n:'Video mode',ROOM()?'Stand by a wall, phone facing across the room. '+r.how+'. Tap record and walk all the way round (60 to 90 s).':'Tap the red button and walk one slow circle (about 60 s). '+r.how+'. Tap Video for photo mode.')}
+  else if(S.head==null)say('Tap the shutter for each angle','No motion sensor found, so the dial can\'t follow you. Side-step '+(ROOM()?'along the walls':'clockwise')+' between shots, about 10 degrees.');
+  else if(S.h0==null)say(ROOM()?'Face across the room':'Face the front of the '+S.subject,'Hold still and tap the shutter. That sets the '+(ROOM()?'start':'front')+'.');
+  else if(ringDone(S.ring)>=n)say(r.n+' done','Tap another ring at the top, or Done.');
+  else if(S.done.has(slot))say(ROOM()?'Keep walking along the walls':'Keep walking clockwise',r.how+'. Stop at the next grey slice.');
   else say(ok?'Hold…':'Hold still',r.how+' · slice '+(sec+1)+' of '+n);
   if(!S.video&&S.auto&&S.h0!=null&&slot&&!S.done.has(slot)&&ok&&!S.busy&&now-S.last>400){if(!S.hold)S.hold=now;else if(now-S.hold>250){S.hold=0;shoot()}}else S.hold=0;
-  const ORD=[1,2,0,3],nx=ORD[ORD.indexOf(S.ring)+1];if(!S.rec&&[...S.done].filter(k=>k[0]===r.k).length>=n&&nx!=null&&S.auto&&[...S.done].filter(k=>k[0]===RINGS[nx].k).length<ringSlices(nx)){S.ring=nx;say(RINGS[S.ring].n+' ring next',RINGS[S.ring].how);try{navigator.vibrate&&navigator.vibrate([60,80,60])}catch(e){}}
+  if(!ROOM()&&!S.link){const ORD=[1,2,0,3],nx=ORD[ORD.indexOf(S.ring)+1];if(!S.rec&&ringDone(S.ring)>=n&&nx!=null&&S.auto&&ringDone(nx)<ringSlices(nx)){S.ring=nx;say(RINGS[S.ring].n+' ring next',RINGS[S.ring].how);buzz([60,80,60])}}
   drawDial();setTimeout(tick,180)}
 
-/* turntable: shoot when the picture has changed since the last shot (subject turned) and has been still for ~0.4 s */
+/* turntable by hand: shoot when the picture has changed since the last shot (subject turned) and has been still for ~0.4 s */
 function tickTurntable(now,L){const th=L?L.thumb:null,moving=tdiff(th,S.thumbPrev),turned=tdiff(th,S.thumbShot);S.thumbPrev=th;
   const sharpOk=L&&L.sharp>=median(S.sharp)*.6;
   if(moving<2.2)S.still=S.still||now;else S.still=0;
   const ready=S.still&&now-S.still>400&&sharpOk&&(S.thumbShot==null||turned>5);
   $('ret').classList.toggle('ok',!!ready&&!S.video);
   const n=passShots();
-  if(S.video){if(S.rec){const t=Math.round((now-S.recT)/1000);say('Recording '+t+' s','Let it turn one full time (or turn it slowly by hand), then tap stop. Keep hands out of the box if you can.')}
+  if(S.video){if(S.rec){const t=Math.round((now-S.recT)/1000);say('Recording '+t+' s','Turn it slowly once round (or let the stand turn it), then tap stop. Keep hands out of the picture if you can.')}
     else say(S.pass===1?'Turntable video':'Pass '+S.pass,'Phone still, subject in the box. Tap record and turn the subject once round, slowly (20 to 40 s).')}
   else if(!S.auto)say('Tap the shutter after each turn','Turn the subject about 10 degrees each time.');
-  else if(n>=TT_TARGET)say('Pass '+S.pass+' done ('+n+' photos)','Lay the subject on its side and tap Next pass for the bottom, or tap Done.');
+  else if(n>=TT_TARGET)say('Pass '+S.pass+' done ('+n+' photos)',S.pass<passesNeeded()?'Lay the subject on its side and tap Next pass for the bottom.':'Tap Done, or Next pass for more.');
   else if(S.thumbShot==null)say('Subject in the box, phone still','It shoots by itself once the picture is still.');
   else if(turned<=5)say('Turn it a little','About 10 degrees, then let go. '+n+' of '+TT_TARGET+' this pass.');
   else say(ready?'Hold…':'Let go, keep still','Shooting when the picture stops moving.');
   if(!S.video&&S.auto&&ready&&!S.busy&&now-S.last>500)shoot()}
 
-async function start(){const subj=$('subj').value.trim().replace(/[^A-Za-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,30)||'scan';S.subject=subj;S.id='s'+Date.now().toString(36);$('err').textContent='';
-  try{if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function'){try{await DeviceOrientationEvent.requestPermission();await DeviceMotionEvent.requestPermission()}catch(e){}}
-    if(!S.stream)await openCam(null)}
-  catch(e){$('err').textContent='The camera did not open ('+(e&&e.name||e)+'). Allow camera access for this site in Chrome and try again.';S.stream=null;return}
-  addEventListener('deviceorientation',onOri);addEventListener('devicemotion',onMot);
-  $('front').hidden=TT();$('pass').hidden=!TT();
-  if(TT()&&S.video){S.video=false;$('mode').setAttribute('aria-pressed',false);$('mode').textContent='Video';$('shut').classList.remove('rec');$('shut').setAttribute('aria-label','Take photo')}
-  $('subjT').textContent=S.subject+(TT()?' · turntable':'')+(S.addTo?' · adding':'');$('start').style.display='none';$('cam').style.display='block';drawDial();startTick()}
+/* motor stand: the subject never stops, so the shots are timed. Two taps on Front time one turn (T); after that the angle of
+   the subject at any moment is (time since the last front tap) / T. A photo run shoots whenever the subject is within 3.5
+   degrees of the middle of a 10-degree bin that has no sharp photo yet, so 36 shots land evenly in one turn (more turns if
+   the phone is slow to take a photo or some come out blurred). A video records exactly one turn. */
+function tickMotor(now,L){const T=S.turn.T,a=angleNow(),b=bins(S.pass),p=MOTOR_PASSES[Math.min(S.pass,3)-1];
+  $('front').textContent=S.turn.T&&!S.turn.needFront?'Front (re-align)':'Front';
+  if(S.turn.needFront){say('Pass '+S.pass+': '+p.n,p.how+'. Then tap Front when its front faces the camera.');return}
+  if(!T){if(S.turn.tap1==null)say('Time one turn','Start the stand, then tap Front when the front faces the camera.');
+    else say('Tap Front again','…when the front comes round. '+Math.round((now-S.turn.tap1)/1000)+' s so far');return}
+  if(S.video){if(S.rec){const el=(now-S.recT)/1000;say('Filming one turn',Math.round(el)+' of '+Math.round(T*1.05)+' s. Hands off.');if(el>=T*1.05)S.rec.stop()}
+    else say('Pass '+S.pass+': '+p.n,p.how+'. Tap record: it films one turn ('+Math.round(T)+' s) and stops by itself.');return}
+  if(!S.run){say('Pass '+S.pass+': '+p.n+' · one turn '+T.toFixed(1)+' s',b.size>=MOTOR_N?(S.pass<passesNeeded()?'Done. Tap Next pass.':'Done. Tap Done, or Next pass for more.'):p.how+'. Tap the shutter: it takes '+MOTOR_N+' photos in one turn by itself.'+(T<15?' This stand is fast: photos may blur, 30 to 60 s a turn is better.':''));return}
+  const el=(now-S.run.start)/1000;
+  if(b.size>=MOTOR_N){S.run=null;buzz([60,80,60]);say('Pass '+S.pass+' done',S.pass<passesNeeded()?'Tap Next pass: '+MOTOR_PASSES[Math.min(S.pass,2)].n.toLowerCase()+'.':'Tap Done, or Next pass for more.');return}
+  if(el>T*2.6){S.run=null;say('Stopped after 2.5 turns',b.size+' of '+MOTOR_N+' angles are sharp. Slow the stand or add light, then tap the shutter to fill the rest.');return}
+  say('Shooting… '+b.size+' of '+MOTOR_N,'Hands off, keep the phone still.');
+  const bin=Math.floor(a/10)%MOTOR_N,off=a-bin*10-5,ok=!L||L.sharp>=median(S.sharp)*.6;
+  if(!b.has(bin)&&Math.abs(off)<=3.5&&!S.busy)shoot({bin,angle:a,ok})}
+function motorFront(){const now=performance.now(),t=S.turn;
+  if(t.needFront){t.t0=now;t.needFront=false;say('Front set','Tap the shutter (or record) for this pass.');buzz(40);return}
+  if(!t.T){if(t.tap1==null){t.tap1=now;buzz(40);return}
+    const T=(now-t.tap1)/1000;if(T<4){t.tap1=now;say('That was quick','Tap when the front faces the camera, then again after one full turn.');return}
+    t.T=T;t.t0=now;buzz([60,80,60]);say('One turn: '+T.toFixed(1)+' s','Tap the shutter: 36 photos in one turn, or switch to video for one turn of film.');return}
+  t.t0=now;buzz(40);say('Front re-aligned','')}
 
+/* ---------- scan setup ---------- */
+function begin(o){const rc=RECIPES[o.recipe]||RECIPES.object;S.recipe=o.recipe;S.mode=rc.mode;S.kind=rc.kind;S.detail=o.detail||rc.detail;S.subject=slug(o.subject)||'scan';
+  S.size=o.size||null;S.mat=!!o.mat;S.proj=o.proj||null;S.link=o.link||null;S.addTo=o.addTo||null;S.id='s'+Date.now().toString(36);
+  S.shots=[];S.videos=[];S.done=new Set();S.h0=null;S.ring=ROOM()||S.link?0:1;S.pass=1;S.thumbShot=null;S.sent=false;S.saved=false;S.extras=[];S.extra=null;
+  S.turn={T:S.turn&&S.turn.T&&MOT()?S.turn.T:null,t0:null,tap1:null,needFront:!!(S.turn&&S.turn.T&&MOT())};S.mbins={};S.mvid={};S.run=null;S.impPass=new Set();
+  S.video=S.link||ROOM()?true:TT()?false:S.video;
+  syncModeBtn()}
+function syncModeBtn(){$('mode').setAttribute('aria-pressed',S.video);$('mode').textContent=S.video?'Video on':'Video';$('shut').classList.toggle('rec',S.video);$('shut').setAttribute('aria-label',S.video?'Start recording':'Take photo')}
+function formOpts(){const rc=RECIPES[S.recipe],v=parseFloat($('sizeV').value);
+  return {recipe:S.recipe,subject:$('subj').value,detail:S.detail,size:rc.size.length&&v>0?{dim:$('sizeD').value,cm:v}:null,mat:rc.mat&&$('matT').getAttribute('aria-pressed')==='true',addTo:S.pickAdd||null}}
+async function sensors(){if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function'){try{await DeviceOrientationEvent.requestPermission();await DeviceMotionEvent.requestPermission()}catch(e){}}
+  if(!S.listening){S.listening=true;addEventListener('deviceorientation',onOri);addEventListener('devicemotion',onMot)}}
+async function showCam(){$('err').textContent='';
+  try{await sensors();if(!S.stream)await openCam(null);await applyLensPref()}
+  catch(e){const m='The camera did not open ('+(e&&e.name||e)+'). Allow camera access for this site in Chrome and try again.';$('err').textContent=m;$('saveMsg').textContent=m;$('projMsg').textContent=m;S.stream=null;return false}
+  $('front').hidden=(TT()&&!MOT())||ROOM()||!!S.link;$('front').textContent=MOT()?'Front':'Set front';$('pass').hidden=!TT();$('timeT').hidden=!MOT();
+  $('subjT').textContent=S.subject+(MOT()?' · motor stand':TT()?' · turntable':ROOM()?' · room':S.link?' · doorway':'')+(S.addTo?' · adding':'');
+  show('cam');drawDial();startTick();return true}
+async function start(){begin(formOpts());await showCam()}
+
+/* ---------- lenses ---------- */
 async function openCam(deviceId){if(S.stream)S.stream.getTracks().forEach(t=>t.stop());
   const v=deviceId?{deviceId:{exact:deviceId}}:{facingMode:{ideal:'environment'}};
   S.stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{...v,width:{ideal:3840},height:{ideal:2160},frameRate:{ideal:30}}});
-  S.track=S.stream.getVideoTracks()[0];S.ic=null;S.photoMax=null;S.locked=null;S.lockTried=false;
+  S.track=S.stream.getVideoTracks()[0];S.ic=null;S.photoMax=null;S.locked=null;S.lockTried=false;S.zoomed=false;
   if('ImageCapture' in window){try{S.ic=new ImageCapture(S.track);const pc=await S.ic.getPhotoCapabilities().catch(()=>null);if(pc&&pc.imageWidth&&pc.imageWidth.max)S.photoMax={w:pc.imageWidth.max,h:pc.imageHeight.max}}catch(e){}}
   $('v').srcObject=S.stream;await $('v').play().catch(()=>{});
-  if(!S.backs.length){try{const d=await navigator.mediaDevices.enumerateDevices();S.backs=d.filter(x=>x.kind==='videoinput'&&!/front|user/i.test(x.label))}catch(e){}}
-  lensInfo()}
-function lensInfo(){const st=S.track.getSettings?S.track.getSettings():{};S.lens={label:S.track.label||'',zoom:st.zoom??null,w:st.width||null,h:st.height||null,photo:S.photoMax};
-  const caps=S.track.getCapabilities?S.track.getCapabilities():{};const canWide=(caps.zoom&&caps.zoom.min<1)||S.backs.length>1;
-  $('lens').hidden=!canWide;$('lens').textContent=S.zoomed?'Lens '+(st.zoom?(+st.zoom).toFixed(1):'wide')+'x':(S.lensIdx>0?'Lens '+(S.lensIdx+1):'Lens 1x')}
-async function switchLens(){if(S.shots.length||S.videos.length||S.rec){say('Lens is locked for this scan','Keep the same lens for the whole scan. Start a new scan to change it.');return}
+  if(!S.backs.length){try{const d=await navigator.mediaDevices.enumerateDevices();S.backs=d.filter(x=>x.kind==='videoinput'&&!/front|user|facing front/i.test(x.label))}catch(e){}}
+  if(!deviceId){const lbl=S.track.label||'';const i=S.backs.findIndex(b=>b.label===lbl);S.lensIdx=i<0?0:i}
   const caps=S.track.getCapabilities?S.track.getCapabilities():{};
-  try{if(caps.zoom&&caps.zoom.min<1){const z=S.zoomed?1:caps.zoom.min;await S.track.applyConstraints({advanced:[{zoom:z}]});S.zoomed=!S.zoomed;lensInfo();say(S.zoomed?'Wide lens on':'Normal lens','Keep this lens for the whole scan.');return}
-    if(S.backs.length>1){S.lensIdx=(S.lensIdx+1)%S.backs.length;await openCam(S.backs[S.lensIdx].deviceId);say('Back camera '+(S.lensIdx+1)+' of '+S.backs.length,'Tap Lens again until the view is the widest. Keep it for the whole scan.')}}
-  catch(e){say('Could not switch lens',String(e&&e.message||e))}}
+  store('scancam-lensinfo',{backs:S.backs.length,zoomMin:caps.zoom?caps.zoom.min:null,at:Date.now()});
+  lensInfo()}
+function lensInfo(){const st=S.track.getSettings?S.track.getSettings():{};
+  S.lens={label:S.track.label||'',idx:S.lensIdx,of:S.backs.length,zoom:st.zoom??null,wide:S.lensWide||(st.zoom!=null&&st.zoom<1),w:st.width||null,h:st.height||null,photo:S.photoMax};
+  $('lens').textContent=S.zoomed?'Lens '+(+st.zoom).toFixed(1)+'×':S.lensWide?'Lens wide':S.backs.length>1?'Lens '+(S.lensIdx+1):'Lens'}
+const lensLocked=()=>S.shots.some(s=>!s.imported)||S.videos.some(v=>!v.imported)||S.rec;
+function lensSheet(){const caps=S.track&&S.track.getCapabilities?S.track.getCapabilities():{},zm=caps.zoom&&caps.zoom.min<1?caps.zoom.min:null,items=[];
+  S.backs.forEach((b,i)=>items.push({id:'d'+i,label:'Camera '+(i+1),on:!S.zoomed&&i===S.lensIdx}));
+  if(!S.backs.length)items.push({id:'d0',label:'Camera 1',on:!S.zoomed});
+  if(zm)items.push({id:'z',label:zm.toFixed(1)+'× wide',on:S.zoomed});
+  $('lensL').innerHTML=items.map(x=>`<button type="button" data-l="${x.id}" aria-pressed="${x.on}">${x.label}</button>`).join('');
+  const nb=S.backs.length,none=nb<=1&&!zm;
+  $('lensInfo').textContent=(lensLocked()?'The lens is fixed for this scan once you have filmed. Start a new scan to change it. ':'')+
+    'Chrome can open '+(nb||1)+' back camera'+((nb||1)>1?'s':'')+' on this phone'+(zm?', and zoom out to '+zm.toFixed(1)+'×':'')+'. '+
+    (none?'This phone keeps its 0.6 lens for its own camera app (Xiaomi and Poco do this). For 0.6: film in the camera app, then use Import from camera app.':
+     zm?'Tap '+zm.toFixed(1)+'× for the wide lens.':'Tap each camera and keep the one with the widest view if you want 0.6. Some phones also list a macro or depth camera here: skip those (blurry or black).');
+  $('lenses').hidden=false}
+async function pickLens(id){if(lensLocked()){lensSheet();return}
+  try{if(id==='z'){const caps=S.track.getCapabilities();await S.track.applyConstraints({advanced:[{zoom:caps.zoom.min}]});S.zoomed=true;S.lensWide=true}
+    else{const i=+id.slice(1);if(S.zoomed&&i===S.lensIdx){await S.track.applyConstraints({advanced:[{zoom:1}]}).catch(()=>{});S.zoomed=false}
+      else if(S.backs[i]&&i!==S.lensIdx){S.lensIdx=i;await openCam(S.backs[i].deviceId)}S.lensWide=false}
+    lensInfo();const p=load('scancam-lenspref',{});p[S.recipe]=id==='z'?{z:1}:{label:(S.backs[S.lensIdx]||{}).label||''};store('scancam-lenspref',p)}
+  catch(e){$('lensInfo').textContent='Could not switch: '+(e&&e.message||e)}
+  lensSheet()}
+async function applyLensPref(){if(lensLocked())return;const p=load('scancam-lenspref',{})[S.recipe];
+  try{if(p&&p.z){const caps=S.track.getCapabilities?S.track.getCapabilities():{};if(caps.zoom&&caps.zoom.min<1&&!S.zoomed){await S.track.applyConstraints({advanced:[{zoom:caps.zoom.min}]});S.zoomed=true;S.lensWide=true}}
+    else if(p&&p.label!=null){const i=S.backs.findIndex(b=>b.label===p.label);if(i>=0&&i!==S.lensIdx){S.lensIdx=i;await openCam(S.backs[i].deviceId)}
+      else if(S.zoomed){await S.track.applyConstraints({advanced:[{zoom:1}]}).catch(()=>{});S.zoomed=false;S.lensWide=false}}
+    else if(!p&&RECIPES[S.recipe].lens==='wide'&&!S.zoomed){const caps=S.track.getCapabilities?S.track.getCapabilities():{};if(caps.zoom&&caps.zoom.min<1){await S.track.applyConstraints({advanced:[{zoom:caps.zoom.min}]});S.zoomed=true;S.lensWide=true}}
+    else if(!p&&RECIPES[S.recipe].lens==='main'&&S.zoomed){await S.track.applyConstraints({advanced:[{zoom:1}]}).catch(()=>{});S.zoomed=false;S.lensWide=false}}catch(e){}
+  lensInfo()}
+
+/* ---------- manifest and sending ---------- */
 function manifest(){const passes=[...new Set([...S.shots.map(s=>s.pass),...S.videos.map(v=>v.pass)].filter(p=>p!=null))].sort();
-  return {app:'scancam-live',v:5,addTo:S.addTo||undefined,mode:S.mode,slices:SLICES,lens:S.lens,lock:S.locked,id:S.id,subject:S.subject,kind:S.kind,createdAt:new Date(parseInt(S.id.slice(1),36)).toISOString(),sentAt:new Date().toISOString(),
-  device:navigator.userAgent.slice(0,160),front:S.h0==null?null:Math.round(S.h0),passes:TT()?passes:undefined,
-  photos:S.shots.map(s=>({file:s.name,bytes:s.blob.size,slot:s.slot,head:s.head,pitch:s.pitch,sharp:s.sharp,pass:TT()?s.pass:undefined,extra:s.extra})),videos:S.videos.map(v=>({file:v.name,bytes:v.blob.size,type:v.type,seconds:v.seconds,ring:v.ring,track:v.track,pass:v.pass,extra:v.extra})),
-  coverage:TT()?undefined:coverage(),
+  const pj=S.proj?{id:S.proj.id,name:S.proj.name,type:'house',room:S.link?undefined:S.proj.room,link:S.link||undefined}:undefined;
+  return {app:'scancam-live',v:6,addTo:S.addTo||undefined,recipe:S.recipe,mode:S.mode,detail:S.detail,size:S.size||undefined,mat:S.mat||undefined,project:pj,
+  slices:SLICES,lens:own()?S.lens:{label:'camera app',imported:true,wide:[...S.shots,...S.videos].every(e=>e.lens==='wide')},lock:own()?S.locked:null,id:S.id,subject:S.subject,kind:S.link?'Room':S.kind,createdAt:new Date(parseInt(S.id.slice(1),36)).toISOString(),sentAt:new Date().toISOString(),
+  device:navigator.userAgent.slice(0,160),front:S.h0==null?null:Math.round(S.h0),passes:TT()?passes:undefined,turn:MOT()&&S.turn.T?{seconds:Math.round(S.turn.T*100)/100}:undefined,
+  photos:S.shots.map(s=>({file:s.name,bytes:s.imported?s.file.size:s.blob.size,slot:s.slot,head:s.head,pitch:s.pitch,sharp:s.sharp,pass:TT()?s.pass:undefined,angle:s.angle,ring:s.ring,extra:s.extra,imported:s.imported||undefined,lens:s.imported?s.lens:undefined})),
+  videos:S.videos.map(v=>({file:v.name,bytes:v.imported?v.file.size:v.blob.size,type:v.type,seconds:v.seconds,ring:v.ring,track:v.track,pass:v.pass,turn:v.turn,extra:v.extra,imported:v.imported||undefined,lens:v.imported?v.lens:undefined})),
+  coverage:coverage(),
   extras:S.extras.filter(x=>x.photos||x.videos).map(x=>({label:x.label,slug:x.slug,photos:x.photos,videos:x.videos})),
   files:S.shots.length+S.videos.length}}
-function allFiles(){const m=new File([JSON.stringify(manifest(),null,1)],`${base()}_scan.json`,{type:'application/json'});
-  return [...S.shots.map(s=>new File([s.blob],s.name,{type:'image/jpeg'})),...S.videos.map(v=>new File([v.blob],v.name,{type:v.type})),m]}
+const asFile=e=>e.imported?(e.file.name===e.name?e.file:new File([e.file],e.name,{type:e.file.type})):new File([e.blob],e.name,{type:e.type||'image/jpeg'});
+const manFile=()=>new File([JSON.stringify(manifest(),null,1)],`${base()}_scan.json`,{type:'application/json'});
+function allFiles(){return [...S.shots.map(asFile),...S.videos.map(asFile),manFile()]}
+const own=()=>S.shots.some(s=>!s.imported)||S.videos.some(v=>!v.imported);
+const onPhone=e=>e.imported&&e.file.name===e.name;                  // imported and still under its own name: already on the phone
 
-function coverage(){const need=NEED[S.kind]||NEED.Object,out={rings:{},extras:{},missing:[]};
-  RINGS.forEach((r,i)=>{const n=ringSlices(i),d=[...S.done].filter(k=>k[0]===r.k).length;out.rings[r.k]={done:d,of:n,required:need.rings.includes(r.k)};
-    if(need.rings.includes(r.k)&&d<n*.8)out.missing.push(r.n+' ring')});
-  for(const x of need.extras){const got=S.extras.some(e=>e.label===x&&(e.photos||e.videos||e.had));out.extras[x]=got;if(!got)out.missing.push(x)}
+function coverage(){const out={rings:{},extras:{},missing:[]};
+  if(TT()){const np=passesNeeded();out.passes={need:np,done:[]};
+    for(let p=1;p<=Math.max(np,S.pass);p++){const ok=MOT()?(S.mvid[p]||bins(p).size>=30||S.impPass.has(p)):(S.impPass.has(p)||S.shots.filter(s=>s.pass===p).length>=24||S.videos.some(v=>v.pass===p));
+      if(ok)out.passes.done.push(p);else if(p<=np)out.missing.push(MOT()?'Pass '+p+' ('+MOTOR_PASSES[Math.min(p,3)-1].n+')':'Pass '+p)}
+    return out}
+  const nd=need();
+  R().forEach((r,i)=>{const n=ringSlices(i),d=ringDone(i);out.rings[r.k]={done:d,of:n,required:nd.rings.includes(r.k)};
+    if(nd.rings.includes(r.k)&&d<n*.8)out.missing.push(r.n+(ROOM()||S.link?'':' ring'))});
+  for(const x of nd.extras){const got=S.extras.some(e=>e.label===x&&(e.photos||e.videos||e.had));out.extras[x]=got;if(!got)out.missing.push(x)}
   return out}
-function drawCov(){const box=$('cov');if(TT()||S.extra){box.hidden=true;$('gaps').hidden=true;return}
-  const cv=coverage(),C=75,R=[[60,72],[46,57],[32,43],[18,29]];let h='';
-  RINGS.forEach((r,i)=>{const n=ringSlices(i),w=360/n,req=cv.rings[r.k].required;for(let k=0;k<n;k++){const a0=(-90+k*w-w/2+.8)*Math.PI/180,a1=(-90+k*w+w/2-.8)*Math.PI/180,[r0,r1]=R[i],
-    p=(rr,a)=>(C+rr*Math.cos(a)).toFixed(1)+' '+(C+rr*Math.sin(a)).toFixed(1),done=S.done.has(key(i,k));
-    h+=`<path d="M${p(r1,a0)}A${r1} ${r1} 0 0 1 ${p(r1,a1)}L${p(r0,a1)}A${r0} ${r0} 0 0 0 ${p(r0,a0)}Z" fill="${done?'#7fe08a':req?'#ff5a1f':'rgba(255,255,255,.18)'}"/>`}});
-  h+=`<text x="${C}" y="${C+5}" text-anchor="middle" font-size="13" fill="#dde2ea">front ↑</text>`;
-  const li=RINGS.map((r,i)=>{const c=cv.rings[r.k],pc=Math.round(100*c.done/c.of),ok=pc>=80;return `<li class="${ok?'ok':c.required?'no':'opt'}"><b>${ok?'✓':c.required?'✗':'·'}</b>${r.n} ring ${pc} %${c.required?'':' (optional)'}</li>`}).join('')+
-    Object.entries(cv.extras).map(([x,g])=>`<li class="${g?'ok':'no'}"><b>${g?'✓':'✗'}</b>Close-ups: ${x}</li>`).join('');
-  box.innerHTML=`<h2>${cv.missing.length?'Missing: '+cv.missing.join(', '):'Everything the laptop needs is covered'}</h2><svg viewBox="0 0 150 150" role="img" aria-label="Coverage map: green covered, red missed">${h}</svg><ul>${li}</ul>`;
+function need(){const d=S.detail;
+  if(S.link)return {rings:['D'],extras:[]};
+  if(ROOM())return {rings:d==='hero'||d==='showcase'?['R1','R2','R3']:['R1','R2'],extras:[]};
+  const k=NEED[S.kind]||NEED.Object;
+  if(d==='lowpoly'||d==='background')return {rings:['M','H'],extras:[]};
+  if(d==='hero'||d==='showcase')return {rings:['L','M','H','T'],extras:k.extras};
+  return k}
+function drawCov(){const box=$('cov');if(S.extra){box.hidden=true;$('gaps').hidden=true;return}
+  const cv=coverage();
+  if(TT()){const np=cv.passes.need,li=Array.from({length:Math.max(np,S.pass)},(_,i)=>{const p=i+1,ok=cv.passes.done.includes(p),req=p<=np;
+      return `<li class="${ok?'ok':req?'no':'opt'}"><b>${ok?'✓':req?'✗':'·'}</b>Pass ${p}${MOT()?': '+MOTOR_PASSES[Math.min(p,3)-1].n:''}${MOT()&&!S.mvid[p]?' · '+bins(p).size+'/36 angles':''}${req?'':' (extra)'}</li>`}).join('');
+    box.innerHTML=`<h2>${cv.missing.length?'Missing: '+cv.missing.join(', '):'Every pass the laptop needs is done'}</h2><ul>${li}</ul>`;box.hidden=false;
+    const miss=Array.from({length:np},(_,i)=>i+1).find(p=>!cv.passes.done.includes(p));$('gaps').hidden=!miss;if(miss){$('gaps').textContent='Do pass '+miss+(MOT()?': '+MOTOR_PASSES[Math.min(miss,3)-1].n:'');$('gaps').dataset.p=miss;delete $('gaps').dataset.r}return}
+  const C=75,RR=[[60,72],[46,57],[32,43],[18,29]],RS=R();let h='';
+  RS.forEach((r,i)=>{const req=cv.rings[r.k].required;h+=arcs(C,RR[i][0],RR[i][1],ringSlices(i),k=>S.done.has(key(i,k))?'#7fe08a':req?'#ff5a1f':'rgba(255,255,255,.18)')});
+  h+=`<text x="${C}" y="${C+5}" text-anchor="middle" font-size="13" fill="#dde2ea">${ROOM()?'start ↑':'front ↑'}</text>`;
+  const li=RS.map((r,i)=>{const c=cv.rings[r.k],pc=Math.round(100*c.done/c.of),ok=pc>=80;return `<li class="${ok?'ok':c.required?'no':'opt'}"><b>${ok?'✓':c.required?'✗':'·'}</b>${r.n}${ROOM()||S.link?'':' ring'} ${pc} %${c.required?'':' (optional)'}</li>`}).join('')+
+    Object.entries(cv.extras).map(([x,g])=>`<li class="${g?'ok':'no'}"><b>${g?'✓':'✗'}</b>Close-ups: ${esc(x)}</li>`).join('');
+  box.innerHTML=`<h2>${cv.missing.length?'Missing: '+cv.missing.map(esc).join(', '):'Everything the laptop needs is covered'}</h2><svg viewBox="0 0 150 150" role="img" aria-label="Coverage map: green covered, red missed">${h}</svg><ul>${li}</ul>`;
   box.hidden=false;
-  const worst=RINGS.map((r,i)=>({i,c:cv.rings[r.k]})).filter(x=>x.c.required&&x.c.done<x.c.of*.8).sort((a,b)=>a.c.done/a.c.of-b.c.done/b.c.of)[0];
-  $('gaps').hidden=!worst;if(worst){$('gaps').textContent='Fill the gaps: '+RINGS[worst.i].n+' ring';$('gaps').dataset.r=worst.i}}
-function finish(){if(S.rec){S.finishAfterStop=true;say('Saving the video…','');S.rec.stop();return}if(S.extra)endExtra();$('cam').style.display='none';$('done').style.display='flex';const nv=S.videos.length;
+  const worst=RS.map((r,i)=>({i,c:cv.rings[r.k]})).filter(x=>x.c.required&&x.c.done<x.c.of*.8).sort((a,b)=>a.c.done/a.c.of-b.c.done/b.c.of)[0];
+  $('gaps').hidden=!worst;if(worst){$('gaps').textContent='Fill the gaps: '+RS[worst.i].n+(ROOM()?'':' ring');$('gaps').dataset.r=worst.i;delete $('gaps').dataset.p}}
+function finish(){if(S.rec){S.finishAfterStop=true;say('Saving the video…','');S.rec.stop();return}if(S.extra)endExtra();S.run=null;$('lenses').hidden=true;show('done');const nv=S.videos.length;
   const xs=S.extras.filter(x=>x.photos||x.videos);$('extrasL').textContent=xs.length?'Extras: '+xs.map(x=>x.label+' ('+(x.photos?x.photos+' photos':'')+(x.photos&&x.videos?', ':'')+(x.videos?x.videos+' video':'')+')').join(' · '):'';
-  $('doneT').textContent=(S.shots.length?S.shots.length+' photos':'')+(S.shots.length&&nv?' + ':'')+(nv?nv+' video'+(nv>1?'s':''):'')+(S.shots.length||nv?'':'Nothing yet')+' · '+S.subject;
-  const cov=TT()?(S.shots.length?'Passes: '+[...new Set(S.shots.map(s=>s.pass))].length+'. ':''):(S.shots.length?S.done.size+' of '+(SLICES*3+12)+' angles covered. ':'');
-  $('doneP').textContent=cov+'Tap Send to Scan Lab, pick LocalSend and Laptop Scan Lab. The laptop builds the model from there (it has to be on and on the home Wi-Fi).';
-  $('grid').innerHTML='';for(const s of S.shots.slice(-120)){if(!s.url)s.url=URL.createObjectURL(s.blob);const i=document.createElement('img');i.src=s.url;i.alt=s.slot||'extra';$('grid').append(i)}
-  $('send').disabled=!(S.shots.length||nv);drawCov()}
+  $('doneT').textContent=(S.shots.length?S.shots.length+' photos':'')+(S.shots.length&&nv?' + ':'')+(nv?nv+' video'+(nv>1?'s':''):'')+(S.shots.length||nv?'':'Nothing yet')+' · '+(S.proj?(S.link?S.link.from+' → '+S.link.to:S.proj.room):S.subject);
+  const ni=[...S.shots,...S.videos].filter(e=>e.imported).length;
+  $('doneP').textContent=(ni?ni+' imported from the camera app. ':'')+'Tap Send to Scan Lab, pick LocalSend and Laptop Scan Lab. The laptop builds the model from there (it has to be on and on the home Wi-Fi).';
+  $('grid').innerHTML='';for(const s of S.shots.slice(-120)){if(!s.url)s.url=URL.createObjectURL(s.imported?s.file:s.blob);const i=document.createElement('img');i.src=s.url;i.alt=s.slot||'photo';$('grid').append(i)}
+  $('send').disabled=!(S.shots.length||nv);$('projRet').hidden=!S.proj;$('extraBtn').hidden=!!S.link;drawCov()}
 async function send(){const files=allFiles(),b=$('send');
   const mb=files.reduce((a,f)=>a+f.size,0)/1e6;
-  if(mb>250){$('saveMsg').textContent='This scan is '+Math.round(mb)+' MB: too big for the share menu (Android loses big files there). Saving to the phone instead…';await save();
-    $('saveMsg').textContent='Saved to Downloads ('+Math.round(mb)+' MB). Now open the LocalSend app → Send → File, pick these files ('+base()+'…) and send them to Laptop Scan Lab.';return}
+  if(mb>250){const keep=[...S.shots,...S.videos].filter(onPhone);
+    $('saveMsg').textContent='This scan is '+Math.round(mb)+' MB: too big for the share menu (Android loses big files there). Saving to the phone instead…';await save();
+    $('saveMsg').textContent='Saved to Downloads. Now open the LocalSend app → Send → File, pick the files starting '+base()+(keep.length?', and from Media the clips you imported ('+keep.map(e=>e.name).join(', ')+')':'')+', and send them to Laptop Scan Lab.';return}
   b.disabled=true;$('saveMsg').textContent='Opening the share menu…';
-  try{if(!navigator.canShare||!navigator.canShare({files}))throw new Error('unsupported');await navigator.share({files,title:'Scan '+S.subject});S.sent=true;remember();$('saveMsg').textContent='Sent '+files.length+' files. The laptop builds the model by itself. Tell Claude "scan" for the result.'}
+  try{if(!navigator.canShare||!navigator.canShare({files}))throw new Error('unsupported');await navigator.share({files,title:'Scan '+S.subject});S.sent=true;sentOk();$('saveMsg').textContent='Sent '+files.length+' files. The laptop builds the model by itself. Tell Claude "scan" for the result.'}
   catch(e){if(e&&e.name==='AbortError')$('saveMsg').textContent='Cancelled. Nothing was sent.';else $('saveMsg').textContent='Sharing files is not available here ('+(e&&e.message||e)+'). Use Save to phone, then send the files with LocalSend.'}
   b.disabled=false}
-async function save(){const b=$('save');b.disabled=true;const files=allFiles();let n=0;for(const f of files){const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);n++;$('saveMsg').textContent='Saving '+n+' of '+files.length+'…';await new Promise(r=>setTimeout(r,350))}
-  S.saved=true;remember();$('saveMsg').textContent='Saved '+n+' files to Downloads. If Chrome asked to allow multiple downloads, tap Allow and press Save again.';b.disabled=false}
+async function save(){const b=$('save');b.disabled=true;const files=[...[...S.shots,...S.videos].filter(e=>!onPhone(e)).map(asFile),manFile()];let n=0;
+  for(const f of files){const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);n++;$('saveMsg').textContent='Saving '+n+' of '+files.length+'…';await new Promise(r=>setTimeout(r,350))}
+  S.saved=true;sentOk();$('saveMsg').textContent='Saved '+n+' files to Downloads. If Chrome asked to allow multiple downloads, tap Allow and press Save again.';b.disabled=false}
+function sentOk(){remember();if(!S.proj)return;const l=projects(),p=l.find(x=>x.id===S.proj.id);if(!p)return;
+  if(S.link){const k=p.links.find(x=>x.from===S.link.from&&x.to===S.link.to);if(k){if(!k.scans.includes(S.id))k.scans.push(S.id)}else p.links.push({from:S.link.from,to:S.link.to,scans:[S.id]})}
+  else{const r=p.rooms.find(x=>x.name===S.proj.room);if(r){if(!r.scans.includes(S.id))r.scans.push(S.id);r.loops=r.loops||{};for(const k of ['R1','R2','R3']){const c=coverage().rings[k];if(c&&c.done>=c.of*.8)r.loops[k]=true}}}
+  saveProjects(l)}
 const PAST='scancam-past';
-function past(){try{return JSON.parse(localStorage.getItem(PAST)||'[]')}catch(e){return []}}
-function remember(){try{const root=S.addTo||S.id,l=past().filter(x=>x.id!==root);l.unshift({id:root,subject:S.subject,kind:S.kind,mode:S.mode,at:Date.now()});localStorage.setItem(PAST,JSON.stringify(l.slice(0,8)))}catch(e){}}
+function past(){return load(PAST,[])}
+function remember(){if(S.proj)return;try{const root=S.addTo||S.id,l=past().filter(x=>x.id!==root);l.unshift({id:root,subject:S.subject,kind:S.kind,mode:S.mode,recipe:S.recipe,detail:S.detail,at:Date.now()});store(PAST,l.slice(0,8))}catch(e){}}
 /* after Send (or Save), filming more starts a follow-up scan: new id, same subject, addTo = the first scan, so nothing is
    sent twice and the laptop combines it with what it already has */
 function followUp(){if(!(S.sent||S.saved))return;S.addTo=S.addTo||S.id;S.id='s'+Date.now().toString(36);S.shots=[];S.videos=[];
   S.extras=S.extras.map(x=>({...x,photos:0,videos:0,had:true}));S.sent=false;S.saved=false;$('saveMsg').textContent='';
   say('Adding to the scan you sent','The new shots are sent as an addition; the laptop combines them with the first ones.')}
-function reset(){S.extra=null;S.extras=[];S.addTo=null;if(S.locked)lockCam(false);S.lockTried=false;$('extrasL').textContent='';S.shots=[];S.videos=[];S.done=new Set();S.h0=null;S.ring=1;S.pass=1;S.thumbShot=null;S.sent=false;S.saved=false;$('done').style.display='none';$('start').style.display='flex';$('subj').value='';$('saveMsg').textContent='';drawPast()}
+function reset(){S.extra=null;S.extras=[];S.addTo=null;S.pickAdd=null;S.proj=null;S.link=null;if(S.locked)lockCam(false);S.lockTried=false;$('extrasL').textContent='';S.shots=[];S.videos=[];S.done=new Set();S.h0=null;S.ring=1;S.pass=1;S.thumbShot=null;S.sent=false;S.saved=false;S.run=null;
+  $('saveMsg').textContent='';$('subj').value='';show('start');drawStart()}
 
-function drawModes(){$('modes').innerHTML=Object.entries(MODES).map(([k,m])=>`<button type="button" data-m="${k}" aria-pressed="${k===S.mode}">${m.n}</button>`).join('');$('howT').textContent=MODES[S.mode].how}
-drawModes();
-$('modes').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;S.mode=b.dataset.m;if(S.mode==='turntable'&&S.kind==='Vehicle'){S.kind='Object';drawKinds()}drawModes()});
-function drawKinds(){$('kinds').innerHTML=KINDS.map(k=>`<button type="button" data-k="${k}" aria-pressed="${k===S.kind}">${k}</button>`).join('')}
-drawKinds();
-function drawPast(){const l=past().filter(x=>x.mode!=='turntable');$('pastBox').hidden=!l.length;
-  $('pastL').innerHTML=l.map(x=>`<button type="button" data-p="${x.id}" aria-pressed="${S.addTo===x.id}">${x.subject.replace(/[<>&"]/g,'')} · ${new Date(x.at).toLocaleDateString(undefined,{day:'numeric',month:'short'})}</button>`).join('')}
-drawPast();
+/* ---------- start screen ---------- */
+function drawRecipes(){$('recipes').innerHTML=Object.entries(RECIPES).map(([k,r])=>`<button type="button" data-c="${k}" aria-pressed="${k===S.recipe}">${r.n}</button>`).join('');
+  const rc=RECIPES[S.recipe];$('howT').textContent=rc.how;
+  const li=load('scancam-lensinfo',null),noWide=li&&li.backs<=1&&!(li.zoomMin<1);
+  $('lensAdv').textContent=rc.lens==='wide'?('Best lens: 0.6 wide (more of the room in every frame). '+(noWide?'This phone keeps its 0.6 for its own camera app: film the loops there and tap Import from camera app, or film here with the main lens and walk slower.':li?'Pick it with the Lens button on the camera screen.':'Tap Lens on the camera screen to see what this phone allows.')):
+    'Best lens: the main 1× lens, the sharpest. '+(rc.mode==='motor'||rc.mode==='turntable'?'Fill about two thirds of the picture with the subject.':'');
+  $('sizeBox').hidden=!rc.size.length;$('sizeD').innerHTML=rc.size.map(d=>`<option value="${d}">${d[0].toUpperCase()+d.slice(1)}</option>`).join('');
+  $('matBox').hidden=!rc.mat;$('subj').placeholder={room:'Living room',vehicle:'Scoopy',furniture:'Armchair',object:'Helmet',building:'Front gate',turntable:'Shoe',motor:'Bag'}[S.recipe]||'';
+  drawDetails()}
+function drawDetails(){$('details').innerHTML=Object.entries(DETAIL).map(([k,d])=>`<button type="button" data-d="${k}" aria-pressed="${k===S.detail}">${d.n}</button>`).join('');$('detT').textContent=DETAIL[S.detail].spec}
+function drawPast(){const l=past();$('pastBox').hidden=!l.length;
+  $('pastL').innerHTML=l.map(x=>`<button type="button" data-p="${esc(x.id)}" aria-pressed="${S.pickAdd===x.id}">${esc(x.subject)} · ${new Date(x.at).toLocaleDateString(undefined,{day:'numeric',month:'short'})}</button>`).join('')}
+function drawProjBox(){const l=projects(),a=l.find(p=>p.id===load('scancam-proj-active',null));
+  let h='';if(a){const sent=a.rooms.filter(r=>r.scans.length).length;h=`<b>House: ${esc(a.name)}</b><p>${sent} of ${a.rooms.length} room${a.rooms.length===1?'':'s'} sent${a.finishedAt?' · plan sent':''}</p><div class="row"><button type="button" data-po="${esc(a.id)}">Open project</button><button class="ghost" type="button" id="pNew">New house project</button></div>`}
+  else h=`<b>House or set of rooms?</b><p>A project keeps the rooms and doorways together and tells you what is still missing.</p><button class="ghost" type="button" id="pNew">New house project</button>`;
+  const others=l.filter(p=>!a||p.id!==a.id);if(others.length)h+=`<div class="chips">${others.map(p=>`<button type="button" data-po="${esc(p.id)}">${esc(p.name)}</button>`).join('')}</div>`;
+  $('projBox').innerHTML=h}
+function drawStart(){drawRecipes();drawPast();drawProjBox()}
+$('recipes').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;S.recipe=b.dataset.c;S.detail=RECIPES[S.recipe].detail;store('scancam-recipe',S.recipe);drawRecipes()});
+$('details').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;S.detail=b.dataset.d;drawDetails()});
+$('matT').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')!=='true'));
 $('pastL').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;const x=past().find(p=>p.id===b.dataset.p);if(!x)return;
-  S.addTo=S.addTo===x.id?null:x.id;if(S.addTo){$('subj').value=x.subject;S.kind=x.kind||S.kind;S.mode='orbit';drawKinds();drawModes()}drawPast()});
-$('kinds').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;S.kind=b.dataset.k;for(const x of $('kinds').children)x.setAttribute('aria-pressed',x===b)});
+  S.pickAdd=S.pickAdd===x.id?null:x.id;if(S.pickAdd){$('subj').value=x.subject;if(x.recipe&&RECIPES[x.recipe])S.recipe=x.recipe;else S.recipe=x.mode==='turntable'?'turntable':({Vehicle:'vehicle',Furniture:'furniture','Building part':'building'})[x.kind]||'object';S.detail=x.detail||RECIPES[S.recipe].detail;drawRecipes()}drawPast()});
+$('projBox').addEventListener('click',e=>{if(e.target.closest('#pNew')){newProject();return}const b=e.target.closest('[data-po]');if(b){store('scancam-proj-active',b.dataset.po);openProject()}});
 $('go').addEventListener('click',start);
-$('shut').addEventListener('click',()=>S.video?toggleRec():shoot());
+$('impGo').addEventListener('click',()=>{begin(formOpts());openImport()});
+
+/* ---------- projects (house, room by room) ---------- */
+function projects(){return load('scancam-projects',[])}
+function saveProjects(l){store('scancam-projects',l)}
+const activeProj=()=>projects().find(p=>p.id===load('scancam-proj-active',null));
+function newProject(){const l=projects(),n=l.filter(p=>p.type==='house').length+1,p={id:'p'+Date.now().toString(36),name:n>1?'House '+n:'House',type:'house',detail:'game',rooms:[],links:[],createdAt:Date.now()};
+  l.unshift(p);saveProjects(l);store('scancam-proj-active',p.id);openProject()}
+function openProject(){const p=activeProj();if(!p){show('start');drawStart();return}
+  $('projT').textContent='House: '+p.name;
+  $('rooms').innerHTML=p.rooms.length?p.rooms.map((r,i)=>{const L=r.loops||{},st=(L.R1?'Loop 1 ✓':'Loop 1 ✗')+' · '+(L.R2?'Loop 2 ✓':'Loop 2 ✗')+(L.R3?' · Middle ✓':'')+' · '+(r.scans.length?'sent'+(r.scans.length>1?' ('+r.scans.length+')':''):'not sent');
+    return `<div class="room"><div><b>${esc(r.name)}</b><small>${st}</small></div><button type="button" data-rf="${i}">${r.scans.length?'Add':'Film'}</button><button class="ghost" type="button" data-ri="${i}">Import</button></div>`}).join(''):'<p class="how">No rooms yet. Add the first one below.</p>';
+  const names=p.rooms.map(r=>r.name);$('roomChips').innerHTML=ROOM_CHIPS.filter(c=>!names.includes(c)).map(c=>`<button type="button" data-rc="${esc(c)}">${esc(c)}</button>`).join('');
+  const opt=names.map(n=>`<option>${esc(n)}</option>`).join('');$('lkFrom').innerHTML=opt;$('lkTo').innerHTML=opt;if(names.length>1)$('lkTo').selectedIndex=1;
+  $('links').innerHTML=p.links.map(k=>`<li class="ok"><b>✓</b> ${esc(k.from)} → ${esc(k.to)}</li>`).join('');
+  const un=unjoined(p);$('linkP').textContent=p.rooms.length<2?'Doorways join the rooms. Add a second room first.':un.length?'Not joined yet: '+un.join(', ')+'. Film a doorway from a joined room into each of them.':'All rooms are joined.';
+  $('lkGo').disabled=$('lkFrom').disabled=$('lkTo').disabled=p.rooms.length<2;
+  $('pdetails').innerHTML=Object.entries(DETAIL).filter(([k])=>k!=='showcase').map(([k,d])=>`<button type="button" data-pd="${k}" aria-pressed="${k===p.detail}">${d.n}</button>`).join('');
+  const all=p.rooms.length&&p.rooms.every(r=>r.scans.length);$('projFin').disabled=!all;
+  $('projFin').textContent=p.finishedAt?'Send the plan again':'Finish house: send the plan';
+  $('projMsg').textContent=!p.rooms.length?'':all?(un.length?'Every room is sent. Doorways missing for '+un.join(', ')+': the laptop builds those rooms on their own.':'Every room is sent and joined. Send the plan and the laptop builds the whole house.'):'Send every room first; then the plan.';
+  show('proj')}
+function unjoined(p){if(p.rooms.length<2)return [];const adj={};for(const k of p.links){(adj[k.from]=adj[k.from]||[]).push(k.to);(adj[k.to]=adj[k.to]||[]).push(k.from)}
+  const seen=new Set([p.rooms[0].name]),q=[p.rooms[0].name];while(q.length){const x=q.shift();for(const y of adj[x]||[])if(!seen.has(y)){seen.add(y);q.push(y)}}
+  return p.rooms.map(r=>r.name).filter(n=>!seen.has(n))}
+function roomOpts(p,r){return {recipe:'room',subject:slug(p.name)+'-'+slug(r.name),detail:p.detail,proj:{id:p.id,name:p.name,room:r.name},addTo:r.scans[0]||null}}
+function addRoom(name){name=String(name||'').trim().slice(0,30);if(!name)return;const l=projects(),p=l.find(x=>x.id===load('scancam-proj-active',null));if(!p)return;
+  if(p.rooms.some(r=>r.name.toLowerCase()===name.toLowerCase())){$('projMsg').textContent=name+' is already in the list.';return}
+  p.rooms.push({name,scans:[],loops:{}});saveProjects(l);$('roomN').value='';openProject()}
+$('roomAdd').addEventListener('click',()=>addRoom($('roomN').value));
+$('roomN').addEventListener('keydown',e=>{if(e.key==='Enter')addRoom($('roomN').value)});
+$('roomChips').addEventListener('click',e=>{const b=e.target.closest('[data-rc]');if(b)addRoom(b.dataset.rc)});
+$('rooms').addEventListener('click',async e=>{const p=activeProj();if(!p)return;const f=e.target.closest('[data-rf]'),i=e.target.closest('[data-ri]');
+  if(f){begin(roomOpts(p,p.rooms[+f.dataset.rf]));await showCam()}
+  else if(i){begin(roomOpts(p,p.rooms[+i.dataset.ri]));openImport()}});
+$('pdetails').addEventListener('click',e=>{const b=e.target.closest('[data-pd]');if(!b)return;const l=projects(),p=l.find(x=>x.id===load('scancam-proj-active',null));if(p){p.detail=b.dataset.pd;saveProjects(l);openProject()}});
+$('lkGo').addEventListener('click',async()=>{const p=activeProj();if(!p)return;const from=$('lkFrom').value,to=$('lkTo').value;if(!from||!to||from===to){$('projMsg').textContent='Pick two different rooms.';return}
+  begin({recipe:'room',subject:slug(p.name)+'-'+slug(from)+'-to-'+slug(to),detail:p.detail,proj:{id:p.id,name:p.name},link:{from,to}});await showCam()});
+$('projBack').addEventListener('click',()=>{show('start');drawStart()});
+$('projDel').addEventListener('click',()=>{const p=activeProj();if(!p)return;if(!S.confirmDel){S.confirmDel=true;$('projMsg').textContent='Tap Delete project again to remove '+p.name+' from this phone (nothing on the laptop is deleted).';setTimeout(()=>S.confirmDel=false,4000);return}
+  S.confirmDel=false;saveProjects(projects().filter(x=>x.id!==p.id));store('scancam-proj-active',null);show('start');drawStart()});
+$('projFin').addEventListener('click',async()=>{const p=activeProj();if(!p)return;
+  const plan={app:'scancam-live',v:6,type:'project',id:p.id,name:p.name,kind:'House',detail:p.detail,
+    rooms:p.rooms.map(r=>({name:r.name,scans:r.scans.slice(),loops:r.loops||{}})),links:p.links.map(k=>({from:k.from,to:k.to,scans:k.scans.slice()})),unjoined:unjoined(p),sentAt:new Date().toISOString()};
+  const f=new File([JSON.stringify(plan,null,1)],`sc_${p.id}_${slug(p.name)||'house'}_project.json`,{type:'application/json'});
+  try{if(!navigator.canShare||!navigator.canShare({files:[f]}))throw new Error('unsupported');await navigator.share({files:[f],title:'House plan '+p.name})}
+  catch(e){if(e&&e.name==='AbortError'){$('projMsg').textContent='Cancelled. Nothing was sent.';return}
+    const u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);
+    $('projMsg').textContent='Saved '+f.name+' to Downloads: send it to Laptop Scan Lab with LocalSend.';}
+  const l=projects(),q=l.find(x=>x.id===p.id);if(q){q.finishedAt=Date.now();saveProjects(l)}
+  openProject();$('projMsg').textContent+=' The laptop builds the house once every room on the plan has arrived. Tell Claude "scan" for the result.'});
+$('projRet').addEventListener('click',()=>{if(!(S.sent||S.saved)&&(S.shots.length||S.videos.length)&&!S.confirmBack){S.confirmBack=true;$('saveMsg').textContent='Not sent yet. Tap Back to project again to leave it.';setTimeout(()=>S.confirmBack=false,4000);return}
+  S.confirmBack=false;openProject()});
+
+/* ---------- import from the phone's own camera app ---------- */
+function impParts(){if(S.link)return [];if(TT())return Array.from({length:3},(_,i)=>({k:'P'+(i+1),n:MOT()?MOTOR_PASSES[i].n:'Pass '+(i+1)}));return R().map(r=>({k:r.k,n:r.n}))}
+function openImport(){const parts=impParts();
+  if(!S.impRing||!parts.some(p=>p.k===S.impRing))S.impRing=parts.length?parts[ROOM()?0:TT()?0:1].k:null;
+  S.impLens=RECIPES[S.recipe].lens==='wide'?'wide':'main';
+  $('impP').textContent=(ROOM()?'Film a loop in your phone\'s camera app at 0.6 (video, 1080p is fine), walking along the walls facing into the room, like in Scan Cam. ':
+    S.link?'Film the doorway walk in the camera app. ':'Film or photograph it in the camera app, the way Scan Cam would guide you. ')+
+    'Then pick the files here. They keep their names, so after Send the laptop finds them. Lock focus and exposure in the camera app if it can (long-press on the picture).';
+  $('impRingL').hidden=!parts.length;$('impRing').innerHTML=parts.map(p=>`<button type="button" data-ir="${p.k}" aria-pressed="${p.k===S.impRing}">${esc(p.n)}</button>`).join('');
+  drawImpLens();$('impL').innerHTML=[...S.shots,...S.videos].filter(e=>e.imported).map(e=>`<li class="ok"><b>✓</b> ${esc(e.name)} · ${(e.file.size/1e6).toFixed(0)} MB${e.ring?' · '+esc(e.ring):''}</li>`).join('');
+  show('imp')}
+function drawImpLens(){$('impLens').innerHTML=[['wide','0.6 wide'],['main','1× main']].map(([k,n])=>`<button type="button" data-il="${k}" aria-pressed="${k===S.impLens}">${n}</button>`).join('')}
+$('impRing').addEventListener('click',e=>{const b=e.target.closest('[data-ir]');if(!b)return;S.impRing=b.dataset.ir;for(const x of $('impRing').children)x.setAttribute('aria-pressed',x===b)});
+$('impLens').addEventListener('click',e=>{const b=e.target.closest('[data-il]');if(!b)return;S.impLens=b.dataset.il;drawImpLens()});
+$('impPick').addEventListener('click',()=>{$('impF').value='';$('impF').click()});
+$('impBack').addEventListener('click',()=>{if(S.shots.length||S.videos.length)finish();else if(S.proj)openProject();else{show('start');drawStart()}});
+const SAFE=/^[A-Za-z0-9][A-Za-z0-9 _.()+-]{0,200}$/;
+function vidSeconds(f){return new Promise(res=>{const v=document.createElement('video'),u=URL.createObjectURL(f);let t=setTimeout(()=>{URL.revokeObjectURL(u);res(null)},4000);
+  v.preload='metadata';v.onloadedmetadata=()=>{clearTimeout(t);URL.revokeObjectURL(u);res(isFinite(v.duration)?Math.round(v.duration*10)/10:null)};v.onerror=()=>{clearTimeout(t);URL.revokeObjectURL(u);res(null)};v.src=u})}
+$('impF').addEventListener('change',async e=>{const fl=[...e.target.files];if(!fl.length)return;followUp();
+  const part=S.impRing,pass=part&&part[0]==='P'?+part.slice(1):null,ring=pass?null:part,have=new Set([...S.shots,...S.videos].map(x=>x.name));let n=0;
+  for(const f of fl){let name=f.name;const ext=(name.match(/\.[A-Za-z0-9]{2,5}$/)||[''])[0].toLowerCase();
+    if(!SAFE.test(name)||name.includes('..')||have.has(name))name=`${base()}_imp${S.shots.length+S.videos.length+1}${ext||(f.type.startsWith('video')?'.mp4':'.jpg')}`;have.add(name);
+    const isV=f.type.startsWith('video')||/\.(mp4|mov|webm|3gp|mkv)$/i.test(f.name);
+    const e2={file:f,name,imported:true,lens:S.impLens,ring:S.link?'D':ring,pass:TT()?(pass||S.pass):null,type:f.type||(isV?'video/mp4':'image/jpeg')};
+    if(isV){e2.seconds=await vidSeconds(f);S.videos.push(e2)}else{e2.slot=null;S.shots.push(e2)}n++}
+  if(TT())S.impPass.add(pass||S.pass);else{const ri=R().findIndex(r=>r.k===(S.link?'D':ring));if(ri>=0)for(let k=0;k<ringSlices(ri);k++)S.done.add(key(ri,k))}
+  openImport();$('impL').insertAdjacentHTML('beforeend',`<li>${n} file${n>1?'s':''} added. Add more, or tap Back to send.</li>`)});
+
+/* ---------- camera screen buttons ---------- */
+$('shut').addEventListener('click',()=>{if(S.video){toggleRec();return}
+  if(MOT()){if(!S.turn.T||S.turn.needFront){say('Time one turn first','Tap Front when the front faces the camera, and again when it comes round.');return}S.run=S.run?null:{start:performance.now()};if(!S.run)say('Paused','Tap the shutter to go on.');return}
+  shoot()});
 $('auto').addEventListener('click',e=>{S.auto=!S.auto;e.currentTarget.setAttribute('aria-pressed',S.auto);e.currentTarget.textContent=S.auto?'Auto on':'Auto off'});
-$('mode').addEventListener('click',e=>{if(S.rec)return;S.video=!S.video;e.currentTarget.setAttribute('aria-pressed',S.video);e.currentTarget.textContent=S.video?'Video on':'Video';$('shut').classList.toggle('rec',S.video);$('shut').setAttribute('aria-label',S.video?'Start recording':'Take photo');drawDial()});
-$('lens').addEventListener('click',switchLens);
+$('mode').addEventListener('click',()=>{if(S.rec)return;S.video=!S.video;S.run=null;syncModeBtn();drawDial()});
+$('lens').addEventListener('click',()=>{if($('lenses').hidden)lensSheet();else $('lenses').hidden=true});
+$('lensL').addEventListener('click',e=>{const b=e.target.closest('[data-l]');if(b)pickLens(b.dataset.l)});
+$('lensOk').addEventListener('click',()=>{$('lenses').hidden=true});
 $('lock').addEventListener('click',()=>{S.lockTried=true;lockCam(!(S.locked&&S.locked.what.length))});
-$('front').addEventListener('click',()=>{if(S.head!=null){S.h0=S.head;say('Front set','Now walk clockwise.')}});
-$('pass').addEventListener('click',()=>{if(S.rec)return;S.pass++;S.thumbShot=null;say('Pass '+S.pass,'Lay the subject on its side (or upside down) in the same spot, then turn it round again.');drawDial()});
+$('front').addEventListener('click',()=>{if(MOT()){motorFront();return}if(S.head!=null){S.h0=S.head;say('Front set','Now walk clockwise.')}});
+$('timeT').addEventListener('click',()=>{if(S.rec)return;S.turn={T:null,t0:null,tap1:null,needFront:false};S.run=null;say('Time one turn','Tap Front when the front faces the camera.')});
+$('pass').addEventListener('click',()=>{if(S.rec)return;S.pass++;S.thumbShot=null;S.run=null;
+  if(MOT()){if(S.pass>=3&&S.turn.T)S.turn.needFront=true;const p=MOTOR_PASSES[Math.min(S.pass,3)-1];say('Pass '+S.pass+': '+p.n,p.how+'.')}
+  else say('Pass '+S.pass,'Lay the subject on its side (or upside down) in the same spot, then turn it round again.');drawDial()});
 $('rings').addEventListener('click',e=>{const b=e.target.closest('[data-r]');if(b){S.ring=+b.dataset.r;drawDial()}});
 $('fin').addEventListener('click',finish);
-$('more').addEventListener('click',()=>{followUp();$('done').style.display='none';$('cam').style.display='block'});
-$('gaps').addEventListener('click',e=>{followUp();S.ring=+e.currentTarget.dataset.r;$('done').style.display='none';$('cam').style.display='block';
-  say(RINGS[S.ring].n+' ring',RINGS[S.ring].how+'. Film one slow circle; the red slices turn green.');drawDial()});
+$('more').addEventListener('click',async()=>{followUp();await showCam()});
+$('gaps').addEventListener('click',async e=>{followUp();const d=e.currentTarget.dataset;
+  if(d.p){S.pass=+d.p;if(MOT()&&S.pass>=3&&S.turn.T)S.turn.needFront=true}else S.ring=+d.r;
+  if(!await showCam())return;
+  if(!d.p)say(R()[S.ring].n,R()[S.ring].how+(ROOM()?'. Walk the room again; the red slices turn green.':'. Film one slow circle; the red slices turn green.'));drawDial()});
 $('send').addEventListener('click',send);$('save').addEventListener('click',save);
+$('impMore').addEventListener('click',()=>openImport());
 $('newScan').addEventListener('click',()=>{if((S.shots.length||S.videos.length)&&!S.sent&&!S.saved&&!S.confirmNew){S.confirmNew=true;$('saveMsg').textContent='This scan is not sent or saved yet. Tap New scan again to throw it away.';setTimeout(()=>S.confirmNew=false,4000);return}S.confirmNew=false;reset()});
 addEventListener('beforeunload',e=>{if((S.shots.length||S.videos.length)&&!S.sent&&!S.saved){e.preventDefault();e.returnValue=''}});
-function drawX(){$('xchips').innerHTML=XCHIPS.map(c=>`<button type="button" data-x="${c}">${c}</button>`).join('')}
-drawX();
+
+/* ---------- extra close-ups ---------- */
+function drawX(){$('xchips').innerHTML=(XCHIPS[S.kind]||XCHIPS.Object).map(c=>`<button type="button" data-x="${esc(c)}">${esc(c)}</button>`).join('')}
 $('xchips').addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;$('xlab').value=b.dataset.x;for(const x of $('xchips').children)x.setAttribute('aria-pressed',x===b)});
-$('extraBtn').addEventListener('click',()=>{followUp();$('done').style.display='none';$('extra').style.display='flex';$('xlab').value=''});
-$('xback').addEventListener('click',()=>{$('extra').style.display='none';$('done').style.display='flex'});
+$('extraBtn').addEventListener('click',()=>{followUp();drawX();show('extra');$('xlab').value=''});
+$('xback').addEventListener('click',()=>show('done'));
 $('xgo').addEventListener('click',async()=>{const label=($('xlab').value.trim()||'detail').slice(0,40);
-  const slug=label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,24)||'detail';
-  let x=S.extras.find(e=>e.slug===slug);if(!x){x={label,slug,photos:0,videos:0};S.extras.push(x)}
-  S.extra=x;S.autoWas=S.auto;S.auto=false;$('auto').setAttribute('aria-pressed',false);$('auto').textContent='Auto off';
-  if(S.video){S.video=false;$('mode').setAttribute('aria-pressed',false);$('mode').textContent='Video';$('shut').classList.remove('rec');$('shut').setAttribute('aria-label','Take photo')}
-  if(!S.stream){try{await openCam(null)}catch(e){$('saveMsg').textContent='The camera did not open.';return}}
-  $('rings').style.display='none';$('dial').style.display='none';$('front').hidden=true;
-  $('subjT').textContent=S.subject+' · extra: '+label;$('extra').style.display='none';$('cam').style.display='block';await focusFree(true);startTick()});
+  const sl=label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,24)||'detail';
+  let x=S.extras.find(e=>e.slug===sl);if(!x){x={label,slug:sl,photos:0,videos:0};S.extras.push(x)}
+  S.extra=x;S.autoWas=S.auto;S.auto=false;S.run=null;$('auto').setAttribute('aria-pressed',false);$('auto').textContent='Auto off';
+  if(S.video){S.video=false;syncModeBtn()}
+  if(!await showCam())return;
+  $('rings').style.display='none';$('dial').style.display='none';$('front').hidden=true;$('pass').hidden=true;$('timeT').hidden=true;
+  $('subjT').textContent=S.subject+' · extra: '+label;await focusFree(true)});
 function endExtra(){S.extra=null;focusFree(false);setTimeout(drawCov,0);S.auto=S.autoWas;$('auto').setAttribute('aria-pressed',S.auto);$('auto').textContent=S.auto?'Auto on':'Auto off';
-  $('rings').style.display='';$('dial').style.display='';$('front').hidden=TT();$('subjT').textContent=S.subject+(TT()?' · turntable':'')}
-window.__S=S;
+  $('rings').style.display='';$('dial').style.display='';$('front').hidden=(TT()&&!MOT())||ROOM()||!!S.link;$('pass').hidden=!TT();$('timeT').hidden=!MOT()}
+
+{const r=load('scancam-recipe',null);if(r&&RECIPES[r]){S.recipe=r;S.detail=RECIPES[r].detail}}
+drawStart();
+window.__S=S;window.__T={manifest,coverage,allFiles,unjoined,projects};
 }
 </script>
 </body>
