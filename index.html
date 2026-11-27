@@ -247,8 +247,8 @@ const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==nul
 function show(id){for(const s of ['start','proj','imp','cam','extra','done'])$(s).style.display=s===id?(s==='cam'?'block':'flex'):'none'}
 const buzz=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
 
-/* heading of the back camera from device orientation (W3C example formula) */
-function heading(a,b,g){const r=Math.PI/180,cY=Math.cos(g*r),cZ=Math.cos(a*r),sX=Math.sin(b*r),sY=Math.sin(g*r),sZ=Math.sin(a*r),cX=Math.cos(b*r);const Vx=-cZ*sY-sZ*sX*cY,Vy=-sZ*sY+cZ*sX*cY;let h=Math.atan(Vx/Vy);if(Vy<0)h+=Math.PI;else if(Vx<0)h+=2*Math.PI;return h/r}
+/* heading of the back camera from device orientation (W3C example formula; atan2 avoids NaN when pointing straight down) */
+function heading(a,b,g){const r=Math.PI/180,cY=Math.cos(g*r),cZ=Math.cos(a*r),sX=Math.sin(b*r),sY=Math.sin(g*r),sZ=Math.sin(a*r),cX=Math.cos(b*r);const Vx=-cZ*sY-sZ*sX*cY,Vy=-sZ*sY+cZ*sX*cY;return (Vx===0&&Vy===0)?0:(Math.atan2(Vx,Vy)/r+360)%360}
 function onOri(e){if(e.alpha==null)return;S.head=heading(e.alpha,e.beta,e.gamma);S.beta=e.beta}
 function onMot(e){const r=e.rotationRate;if(!r)return;const m=Math.hypot(r.alpha||0,r.beta||0,r.gamma||0);S.rot.push([performance.now(),m]);while(S.rot.length&&S.rot[0][0]<performance.now()-400)S.rot.shift()}
 const steady=()=>S.rot.length<3?S.head==null:S.rot.every(x=>x[1]<18);
@@ -305,17 +305,17 @@ async function shoot(mo){if(S.busy)return;S.busy=true;await autoLock();if(S.h0==
 function recMime(){for(const m of ['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'])try{if(MediaRecorder.isTypeSupported(m))return m}catch(e){}return ''}
 async function toggleRec(){if(S.rec){S.rec.stop();return}
   if(!window.MediaRecorder){say('Video recording is not supported here','Use photo mode.');return}
-  if(MOT()&&!S.turn.T){say('Time one turn first','Tap Front when the front faces the camera, and again when it comes round.');return}
+  if(MOT()&&!S.extra&&!S.turn.T){say('Time one turn first','Tap Front when the front faces the camera, and again when it comes round.');return}
   await autoLock();if(S.h0==null&&S.head!=null)S.h0=S.head;const mime=recMime(),chunks=[];let r;
   if(S.auto&&!S.link&&!TT()&&!S.extra){const rt=tiltRing();if(rt!=null&&!(ROOM()&&S.ring===2))S.ring=rt}S.lastSec=null;
   try{r=new MediaRecorder(S.stream,mime?{mimeType:mime,videoBitsPerSecond:40e6}:{videoBitsPerSecond:40e6})}catch(e){say('Could not start recording',String(e&&e.message||e));return}
   r.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-  const ring=S.ring,pass=S.pass,xt=S.extra,turn=MOT()?{seconds:Math.round(S.turn.T*100)/100,startAngle:Math.round(angleNow()*10)/10}:undefined;
+  const ring=S.ring,pass=S.pass,xt=S.extra,turn=(MOT()&&!xt)?{seconds:Math.round(S.turn.T*100)/100,startAngle:Math.round(angleNow()*10)/10}:undefined;
   r.onstop=()=>{const type=(r.mimeType||mime||'video/webm').split(';')[0],ext=type.includes('mp4')?'mp4':'webm',n=S.videos.length+1,sec=Math.round((performance.now()-S.recT)/100)/10;
     let rk=(TT()||xt)?null:R()[ring].k;
     if(rk&&S.auto&&!S.link&&S.trackLog.length>4&&!(ROOM()&&ring===2)){const c={};for(const t of S.trackLog){const q=tiltRing(t[2]);if(q!=null)c[q]=(c[q]||0)+1}const best=Object.entries(c).sort((a,b)=>b[1]-a[1])[0];if(best)rk=R()[+best[0]].k}
-    S.videos.push({blob:new Blob(chunks,{type}),type,seconds:sec,ring:rk,track:(TT()||xt)?undefined:S.trackLog.slice(),pass:TT()?pass:null,turn,extra:xt?xt.label:undefined,name:xt?`${base()}_x-${xt.slug}_video${n}.${ext}`:`${base()}_video${n}.${ext}`});
-    if(xt)xt.videos++;if(MOT()&&sec>=S.turn.T*.95)S.mvid[pass]=true;if(TT()&&!MOT())S.impPass.add(pass);
+    S.videos.push({blob:new Blob(chunks,{type}),type,seconds:sec,ring:rk,track:(TT()||xt)?undefined:S.trackLog.slice(),pass:(TT()&&!xt)?pass:null,turn,extra:xt?xt.label:undefined,name:xt?`${base()}_x-${xt.slug}_video${n}.${ext}`:`${base()}_video${n}.${ext}`});
+    if(xt)xt.videos++;if(MOT()&&!xt&&sec>=S.turn.T*.95)S.mvid[pass]=true;if(TT()&&!MOT()&&!xt)S.impPass.add(pass);
     if(S.link)for(let k=0;k<SLICES;k++)S.done.add(key(0,k));
     S.rec=null;$('shut').classList.remove('on');$('shut').setAttribute('aria-label','Start recording');
     say('Video saved ('+sec+' s)',S.link?'Tap Done.':TT()?(S.pass<passesNeeded()?'Tap Next pass.':'Tap Done, or Next pass for more.'):ROOM()?'Film the other loop, or tap Done.':'Film another circle at a different height, or tap Done.');drawDial();
@@ -459,20 +459,21 @@ function lensSheet(){const caps=S.track&&S.track.getCapabilities?S.track.getCapa
     (none?'This phone keeps its 0.6 lens for its own camera app (Xiaomi and Poco do this). For 0.6: film in the camera app, then use Import from camera app.':
      zm?'Tap '+zm.toFixed(1)+'× for the wide lens.':'Tap each camera and keep the one with the widest view if you want 0.6. Some phones also list a macro or depth camera here: skip those (blurry or black).');
   $('lenses').hidden=false}
+const isWideLabel=lbl=>/ultra|wide|0\.5|0\.6/i.test(lbl||'')&&!/tele|macro/i.test(lbl||'');
 async function pickLens(id){if(lensLocked()){lensSheet();return}
   try{if(id==='z'){const caps=S.track.getCapabilities();await S.track.applyConstraints({advanced:[{zoom:caps.zoom.min}]});S.zoomed=true;S.lensWide=true;S.zoom2=false}
     else if(id==='z2'){await S.track.applyConstraints({advanced:[{zoom:2}]});S.zoomed=true;S.lensWide=false;S.zoom2=true}
     else{const i=+id.slice(1);if(S.zoomed&&i===S.lensIdx){await S.track.applyConstraints({advanced:[{zoom:1}]}).catch(()=>{});S.zoomed=false}
-      else if(S.backs[i]&&i!==S.lensIdx){S.lensIdx=i;await openCam(S.backs[i].deviceId)}S.lensWide=false;S.zoom2=false}
+      else if(S.backs[i]&&i!==S.lensIdx){S.lensIdx=i;await openCam(S.backs[i].deviceId)}S.lensWide=isWideLabel((S.backs[S.lensIdx]||{}).label);S.zoom2=false}
     lensInfo();const p=load('scancam-lenspref',{});p[S.recipe]=id==='z'?{z:1}:id==='z2'?{z2:1}:{label:(S.backs[S.lensIdx]||{}).label||''};store('scancam-lenspref',p)}
   catch(e){$('lensInfo').textContent='Could not switch: '+(e&&e.message||e)}
   lensSheet()}
 async function applyLensPref(){if(lensLocked())return;const p=load('scancam-lenspref',{})[S.recipe];
   try{if(p&&p.z2){const caps=S.track.getCapabilities?S.track.getCapabilities():{};if(caps.zoom&&caps.zoom.max>=2&&!S.zoom2){await S.track.applyConstraints({advanced:[{zoom:2}]});S.zoomed=true;S.lensWide=false;S.zoom2=true}}
-    else if(p&&p.z){const caps=S.track.getCapabilities?S.track.getCapabilities():{};if(caps.zoom&&caps.zoom.min<1&&!S.zoomed){await S.track.applyConstraints({advanced:[{zoom:caps.zoom.min}]});S.zoomed=true;S.lensWide=true}}
+    else if(p&&p.z){const caps=S.track.getCapabilities?S.track.getCapabilities():{};if(caps.zoom&&caps.zoom.min<1&&!S.lensWide){await S.track.applyConstraints({advanced:[{zoom:caps.zoom.min}]});S.zoomed=true;S.lensWide=true;S.zoom2=false}}
     else if(p&&p.label!=null){const i=S.backs.findIndex(b=>b.label===p.label);if(i>=0&&i!==S.lensIdx){S.lensIdx=i;await openCam(S.backs[i].deviceId)}
-      else if(S.zoomed){await S.track.applyConstraints({advanced:[{zoom:1}]}).catch(()=>{});S.zoomed=false;S.lensWide=false;S.zoom2=false}}
-    else if(!p&&RECIPES[S.recipe].lens==='wide'&&!S.zoomed){const caps=S.track.getCapabilities?S.track.getCapabilities():{};if(caps.zoom&&caps.zoom.min<1){await S.track.applyConstraints({advanced:[{zoom:caps.zoom.min}]});S.zoomed=true;S.lensWide=true}}
+      else if(S.zoomed){await S.track.applyConstraints({advanced:[{zoom:1}]}).catch(()=>{});S.zoomed=false;S.zoom2=false}S.lensWide=isWideLabel((S.backs[S.lensIdx]||{}).label)}
+    else if(!p&&RECIPES[S.recipe].lens==='wide'&&!S.lensWide){const caps=S.track.getCapabilities?S.track.getCapabilities():{};if(caps.zoom&&caps.zoom.min<1){await S.track.applyConstraints({advanced:[{zoom:caps.zoom.min}]});S.zoomed=true;S.lensWide=true;S.zoom2=false}}
     else if(!p&&RECIPES[S.recipe].lens==='main'&&S.zoomed){await S.track.applyConstraints({advanced:[{zoom:1}]}).catch(()=>{});S.zoomed=false;S.lensWide=false;S.zoom2=false}}catch(e){}
   lensInfo()}
 
@@ -677,7 +678,7 @@ $('impF').addEventListener('change',async e=>{const fl=[...e.target.files];if(!f
 
 /* ---------- camera screen buttons ---------- */
 $('shut').addEventListener('click',()=>{if(S.video){toggleRec();return}
-  if(MOT()){if(!S.turn.T||S.turn.needFront){say('Time one turn first','Tap Front when the front faces the camera, and again when it comes round.');return}S.run=S.run?null:{start:performance.now()};if(!S.run)say('Paused','Tap the shutter to go on.');return}
+  if(MOT()&&!S.extra){if(!S.turn.T||S.turn.needFront){say('Time one turn first','Tap Front when the front faces the camera, and again when it comes round.');return}S.run=S.run?null:{start:performance.now()};if(!S.run)say('Paused','Tap the shutter to go on.');return}
   shoot()});
 $('auto').addEventListener('click',e=>{S.auto=!S.auto;e.currentTarget.setAttribute('aria-pressed',S.auto);e.currentTarget.textContent=S.auto?'Auto on':'Auto off'});
 $('mode').addEventListener('click',()=>{if(S.rec)return;S.video=!S.video;S.run=null;syncModeBtn();drawDial()});
@@ -733,7 +734,7 @@ $('heroBtn').addEventListener('click',async()=>{followUp();
   if(S.video){S.video=false;syncModeBtn()}
   if(!await showCam())return;
   $('rings').style.display='none';$('dial').style.display='none';$('front').hidden=true;$('pass').hidden=true;$('timeT').hidden=true;
-  $('subjT').textContent=S.subject+' · hero shots'});
+  $('subjT').textContent=S.subject+' · hero shots';await focusFree(true)});
 
 /* v9 (2026-11-27, Adam: "I don't see my scoopy as a project that I can click on and then add detail shots"): the laptop's
    scan projects. The Studio Board's Open Scan Cam button carries them in the link (#lab=<base64url JSON>), so they never sit
