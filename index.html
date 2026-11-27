@@ -74,6 +74,7 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
 <body>
 <section id="start" class="page">
   <h1>Scan Cam Live</h1>
+  <div class="box" id="labBox" hidden></div>
   <div class="box" id="projBox"></div>
   <label>What are you scanning?</label>
   <div class="chips" id="recipes" role="group" aria-label="What you scan"></div>
@@ -411,7 +412,7 @@ function motorFront(){const now=performance.now(),t=S.turn;
   t.t0=now;buzz(40);say('Front re-aligned','')}
 
 /* ---------- scan setup ---------- */
-function begin(o){const rc=RECIPES[o.recipe]||RECIPES.object;S.recipe=o.recipe;S.mode=rc.mode;S.kind=rc.kind;S.detail=o.detail||rc.detail;S.subject=slug(o.subject)||'scan';
+function begin(o){S.fromLab=false;const rc=RECIPES[o.recipe]||RECIPES.object;S.recipe=o.recipe;S.mode=rc.mode;S.kind=rc.kind;S.detail=o.detail||rc.detail;S.subject=slug(o.subject)||'scan';
   S.size=o.size||null;S.mat=!!o.mat;S.proj=o.proj||null;S.link=o.link||null;S.addTo=o.addTo||null;S.id='s'+Date.now().toString(36);
   S.shots=[];S.videos=[];S.done=new Set();S.h0=null;S.ring=ROOM()||S.link?0:1;S.pass=1;S.thumbShot=null;S.sent=false;S.saved=false;S.extras=[];S.extra=null;
   S.turn={T:S.turn&&S.turn.T&&MOT()?S.turn.T:null,t0:null,tap1:null,needFront:!!(S.turn&&S.turn.T&&MOT())};S.mbins={};S.mvid={};S.run=null;S.impPass=new Set();
@@ -509,7 +510,8 @@ function need(){const d=S.detail;
   if(d==='lowpoly'||d==='background')return {rings:['M','H'],extras:[]};
   if(d==='hero'||d==='showcase')return {rings:['L','M','H','T'],extras:k.extras};
   return k}
-function drawCov(){const box=$('cov');if(S.extra){box.hidden=true;$('gaps').hidden=true;return}
+function drawCov(){const box=$('cov');
+  if(S.extra||(S.addTo&&S.shots.every(x=>x.extra)&&S.videos.every(x=>x.extra))){box.hidden=true;$('gaps').hidden=true;return}   /* v9: an addition of close-ups only has no rings to cover */
   const cv=coverage();
   if(TT()){const np=cv.passes.need,li=Array.from({length:Math.max(np,S.pass)},(_,i)=>{const p=i+1,ok=cv.passes.done.includes(p),req=p<=np;
       return `<li class="${ok?'ok':req?'no':'opt'}"><b>${ok?'✓':req?'✗':'·'}</b>Pass ${p}${MOT()?': '+MOTOR_PASSES[Math.min(p,3)-1].n:''}${MOT()&&!S.mvid[p]?' · '+bins(p).size+'/36 angles':''}${req?'':' (extra)'}</li>`}).join('');
@@ -582,7 +584,7 @@ function drawProjBox(){const l=projects(),a=l.find(p=>p.id===load('scancam-proj-
   else h=`<b>House or set of rooms?</b><p>A project keeps the rooms and doorways together and tells you what is still missing.</p><button class="ghost" type="button" id="pNew">New house project</button>`;
   const others=l.filter(p=>!a||p.id!==a.id);if(others.length)h+=`<div class="chips">${others.map(p=>`<button type="button" data-po="${esc(p.id)}">${esc(p.name)}</button>`).join('')}</div>`;
   $('projBox').innerHTML=h}
-function drawStart(){drawRecipes();drawPast();drawProjBox()}
+function drawStart(){drawRecipes();drawPast();drawProjBox();drawLab()}
 $('recipes').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;S.recipe=b.dataset.c;S.detail=RECIPES[S.recipe].detail;store('scancam-recipe',S.recipe);drawRecipes()});
 $('details').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;S.detail=b.dataset.d;drawDetails()});
 $('matT').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')!=='true'));
@@ -704,7 +706,7 @@ addEventListener('beforeunload',e=>{if((S.shots.length||S.videos.length)&&!S.sen
 function drawX(){$('xchips').innerHTML=(XCHIPS[S.kind]||XCHIPS.Object).map(c=>`<button type="button" data-x="${esc(c)}">${esc(c)}</button>`).join('')}
 $('xchips').addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;$('xlab').value=b.dataset.x;for(const x of $('xchips').children)x.setAttribute('aria-pressed',x===b)});
 $('extraBtn').addEventListener('click',()=>{followUp();drawX();show('extra');$('xlab').value=''});
-$('xback').addEventListener('click',()=>show('done'));
+$('xback').addEventListener('click',()=>{if(S.fromLab&&!S.shots.length&&!S.videos.length){reset();return}show('done')});
 $('xgo').addEventListener('click',async()=>{const label=($('xlab').value.trim()||'detail').slice(0,40);
   const sl=label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,24)||'detail';
   let x=S.extras.find(e=>e.slug===sl);if(!x){x={label,slug:sl,photos:0,videos:0};S.extras.push(x)}
@@ -733,9 +735,33 @@ $('heroBtn').addEventListener('click',async()=>{followUp();
   $('rings').style.display='none';$('dial').style.display='none';$('front').hidden=true;$('pass').hidden=true;$('timeT').hidden=true;
   $('subjT').textContent=S.subject+' · hero shots'});
 
+/* v9 (2026-11-27, Adam: "I don't see my scoopy as a project that I can click on and then add detail shots"): the laptop's
+   scan projects. The Studio Board's Open Scan Cam button carries them in the link (#lab=<base64url JSON>), so they never sit
+   in this public repo; the phone keeps them. Tap one: Detail shots, Hero shots or More rounds go out as a follow-up of the
+   project's scan (addTo = its id) and the laptop combines them with everything it already has. */
+const LAB='scancam-lab';
+function labProjects(){const d=load(LAB,null);return d&&Array.isArray(d.projects)?d.projects:[]}
+(function readLab(){const m=/[#&]lab=([A-Za-z0-9_-]+)/.exec(location.hash||'');if(!m)return;
+  try{const b=m[1].replace(/-/g,'+').replace(/_/g,'/'),bin=atob(b+'='.repeat((4-b.length%4)%4));
+    const j=JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))));
+    if(j&&Array.isArray(j.projects))store(LAB,{at:j.at||Date.now(),projects:j.projects.filter(p=>p&&typeof p.id==='string'&&/^[a-z0-9]{4,20}$/.test(p.id)&&p.name).slice(0,6)})}catch(e){}
+  try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}})();
+function labRecipe(p){return p.recipe&&RECIPES[p.recipe]?p.recipe:p.mode==='turntable'?'turntable':({Vehicle:'vehicle',Furniture:'furniture','Building part':'building'})[p.kind]||'object'}
+function drawLab(){const l=labProjects(),b=$('labBox');b.hidden=!l.length;if(!l.length){b.innerHTML='';return}
+  const sel=l.find(p=>p.id===S.labSel);
+  b.innerHTML=`<b>Your projects</b><div class="chips">${l.map(p=>`<button type="button" data-lab="${esc(p.id)}" aria-pressed="${p.id===S.labSel}">${esc(p.name)}</button>`).join('')}</div>`+
+    (sel?`<p class="how">${esc(sel.note||'Adds to '+sel.name+'; the laptop combines it with what it already has.')}</p><div class="row"><button type="button" data-la="detail">Detail shots</button><button class="ghost" type="button" data-la="hero">Hero shots</button><button class="ghost" type="button" data-la="more">More rounds</button></div>`
+        :'<p class="how">Tap one to add detail shots, hero shots or more rounds to it.</p>')}
+$('labBox').addEventListener('click',async e=>{const c=e.target.closest('[data-lab]');if(c){S.labSel=S.labSel===c.dataset.lab?null:c.dataset.lab;drawLab();return}
+  const a=e.target.closest('[data-la]');if(!a)return;const p=labProjects().find(x=>x.id===S.labSel);if(!p)return;
+  const rc=labRecipe(p);begin({recipe:rc,subject:p.subject||p.name,detail:p.detail&&DETAIL[p.detail]?p.detail:RECIPES[rc].detail,addTo:p.id});
+  if(a.dataset.la==='detail'){S.fromLab=true;drawX();$('xlab').value='';show('extra')}
+  else if(a.dataset.la==='hero')$('heroBtn').click();
+  else await showCam()});
+
 {const r=load('scancam-recipe',null);if(r&&RECIPES[r]){S.recipe=r;S.detail=RECIPES[r].detail}}
 drawStart();
-window.__S=S;window.__T={manifest,coverage,allFiles,unjoined,projects};
+window.__S=S;window.__T={manifest,coverage,allFiles,unjoined,projects,labProjects};
 }
 </script>
 </body>

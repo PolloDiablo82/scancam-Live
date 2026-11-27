@@ -2,6 +2,13 @@
 
 Live-camera capture page for Scan Lab, live at https://pollodiablo82.github.io/scancam-live/ (repo `PolloDiablo82/scancam-live`, GitHub Pages from `main` root). Artifact pages cannot open the camera or read motion sensors, so this one is hosted outside Claude. Run `python3 tools/secretscan.py <repo> --history` before every push. `mat.pdf` is made by `2dengine/tools/scanlab/mat/make_mat.py`.
 
+v9 (2026-11-27, Adam: "I don't see my scoopy as a project that I can click on and then add detail shots"):
+- **Your projects** on the start screen: the laptop's scan projects (Scan Lab engine 0.34, `lessons/projects.json`). They arrive through the Studio Board's **Open Scan Cam** button, whose link carries them after `#lab=` (base64url JSON `{at, projects: [{id, name, subject, kind, mode, recipe, detail, note}]}`), so nothing about them is in this public repo; the phone keeps them (`localStorage scancam-lab`) and the link data is removed from the address bar. Tap a project: **Detail shots** (the close-up part picker), **Hero shots** or **More rounds** start a follow-up scan with `addTo` = the project's scan id; the laptop combines it with everything it has. Close-up-only additions hide the ring coverage map.
+- Why: "Add to an earlier scan" only lists sends from this phone since v6; the Scoopy was sent with v3.
+- Tested in headless Chrome (fake camera): link -> projects listed and kept, address bar cleared, Detail shots -> part picker -> camera -> manifest `addTo` + `extra`, Back without shots returns to start, Hero shots on the bag, a broken link keeps the saved projects.
+
+v8 and older: see below.
+
 v7 (2026-11-26, Adam: "universal help in scanning", a house room by room, the 0.6 lens, a bag on a motor stand, polygon budget):
 - **Recipes** on the start screen: Room, Vehicle, Furniture, Object, Building part, Turntable (by hand), Motor stand. Each sets the mode, kind, best lens, what coverage it needs and the tips. Last choice remembered.
 - **Detail level**: Hero, Game, Background, Low-poly, Showcase (manifest `detail`). Sets how much the guide asks for (Low-poly/Background: middle + high rings; Hero/Showcase: every ring, the top and close-ups; turntable passes 1/2/3) and the laptop's build, finish and ship budget (`scanio.DETAIL`, `ship.py --profile auto`).
