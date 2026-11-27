@@ -29,6 +29,7 @@ a{color:#9fb2ff}
 .page input[type=text],.page input[type=number],.page select{font:16px system-ui,sans-serif;padding:13px;border-radius:14px;border:1.5px solid #333;background:#111;color:#fff;width:100%;min-height:48px}
 .page .err{color:var(--hot)}
 .how{font-size:15px}
+.hints{gap:6px}.hints b{font-size:14px;color:#9fe870}.hints ul{margin:0;padding-left:18px}.hints li{font-size:14px;color:#dde2ea;margin:3px 0}
 .tip{font-size:14px;background:#14171c;border-radius:12px;padding:10px 12px;color:#dde2ea!important}
 .box{background:#14171c;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .box b{font-size:17px}
@@ -78,6 +79,7 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
   <div class="chips" id="recipes" role="group" aria-label="What you scan"></div>
   <p class="how" id="howT"></p>
   <p class="tip" id="lensAdv"></p>
+  <div class="box hints" id="hintBox" hidden></div>
   <label for="subj">Name</label>
   <input id="subj" type="text" maxlength="40" placeholder="Scoopy" autocomplete="off">
   <label>Detail</label>
@@ -557,7 +559,13 @@ function drawRecipes(){$('recipes').innerHTML=Object.entries(RECIPES).map(([k,r]
     'Best lens: the main 1× lens, the sharpest. '+(rc.mode==='motor'||rc.mode==='turntable'?'Fill about two thirds of the picture with the subject.':'');
   $('sizeBox').hidden=!rc.size.length;$('sizeD').innerHTML=rc.size.map(d=>`<option value="${d}">${d[0].toUpperCase()+d.slice(1)}</option>`).join('');
   $('matBox').hidden=!rc.mat;$('subj').placeholder={room:'Living room',vehicle:'Scoopy',furniture:'Armchair',object:'Helmet',building:'Front gate',turntable:'Shoe',motor:'Bag'}[S.recipe]||'';
-  drawDetails()}
+  drawDetails();drawHints()}
+/* engine 0.28: what the laptop learned from your last scans of this kind (hints.json, made by Scan Lab's learning loop) */
+let HINTS=null;
+fetch('hints.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{HINTS=j;drawHints()}).catch(()=>{});
+function drawHints(){const b=$('hintBox');if(!b)return;const h=HINTS&&HINTS.types&&HINTS.types[S.recipe];
+  if(!h||!Array.isArray(h.hints)||!h.hints.length){b.hidden=true;return}
+  b.hidden=false;b.innerHTML=`<b>Last time (${h.scans||1} ${esc(RECIPES[S.recipe].n.toLowerCase())} scan${(h.scans||1)>1?'s':''})</b><ul>${h.hints.slice(0,4).map(x=>`<li>${esc(x.text)}</li>`).join('')}</ul>`}
 function drawDetails(){$('details').innerHTML=Object.entries(DETAIL).map(([k,d])=>`<button type="button" data-d="${k}" aria-pressed="${k===S.detail}">${d.n}</button>`).join('');$('detT').textContent=DETAIL[S.detail].spec}
 function drawPast(){const l=past();$('pastBox').hidden=!l.length;
   $('pastL').innerHTML=l.map(x=>`<button type="button" data-p="${esc(x.id)}" aria-pressed="${S.pickAdd===x.id}">${esc(x.subject)} · ${new Date(x.at).toLocaleDateString(undefined,{day:'numeric',month:'short'})}</button>`).join('')}

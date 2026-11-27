@@ -1,0 +1,26 @@
+{
+ "updatedAt": "2026-11-27T11:01:03+07:00",
+ "types": {
+  "turntable": {
+   "scans": 1,
+   "hints": []
+  },
+  "vehicle": {
+   "scans": 2,
+   "hints": [
+    {
+     "text": "Only about 67 % of the surface was seen by a camera. Add close-ups low down and underneath: phone at knee height, tilted up.",
+     "why": "texelsSeen"
+    },
+    {
+     "text": "The front wheel's cover was partly guessed. Film it close from both sides at wheel height, and from behind.",
+     "why": "covers"
+    },
+    {
+     "text": "The rear wheel's cover was partly guessed. Film it close from both sides at wheel height, and from behind.",
+     "why": "covers"
+    }
+   ]
+  }
+ }
+}
