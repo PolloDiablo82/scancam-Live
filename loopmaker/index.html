@@ -236,8 +236,8 @@ details{border-top:1.5px solid var(--line);padding-top:10px}summary{cursor:point
   <section class="card" id="s6" hidden>
     <div class="card-head"><h2>6. Elaborate with AI</h2><span class="sub">Claude turns your tune + beat into full game music with Calm / Fight / Boss layers.</span></div>
     <div id="sendCloudBox" class="tip" hidden>
-      You're on the live-mic page. Tap the button: your loop is copied, Claude Loop Maker opens, then tap <b>Paste JSON</b> there in step 6.
-      <div class="row" style="margin-top:8px"><button id="sendClaudeBtn" class="accent">Open in Claude Loop Maker →</button><button id="cpy2">Copy loop JSON</button></div>
+      You're on the live-mic page. Tap the button: your loop is copied, Game Studio opens, then tap <b>Paste JSON</b> in Music, step 6.
+      <div class="row" style="margin-top:8px"><button id="sendClaudeBtn" class="accent">Open in Game Studio →</button><button id="cpy2">Copy loop JSON</button></div>
     </div>
     <div class="row" id="styles"></div>
     <div class="row">
@@ -281,7 +281,7 @@ details{border-top:1.5px solid var(--line);padding-top:10px}summary{cursor:point
 <script>
 {
 const $=id=>document.getElementById(id),SC=window.SoundCard;
-const CLAUDE_URL='https://claude.ai/artifact/TEB28SwhNtpMvN3hAr8bCe';
+const CLAUDE_URL='https://claude.ai/artifact/RC3oJ9EE4zhAGMgfaNRNYL';
 const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'],WHITE=[0,2,4,5,7,9,11];
 const BEATS={
   simple:{36:[0,8,10],38:[4,12],42:[0,2,4,6,8,10,12,14]},
@@ -662,7 +662,7 @@ $('pasteGo').onclick=()=>{const raw=$('pasteTa').value.trim();if(!raw)return;
     $('pasteTa').value='';$('pasteBox').hidden=true;$('pasteBtn').setAttribute('aria-expanded','false');$('astat').textContent='Loaded loop from JSON.'}
   catch(_){$('astat').textContent='Could not read that JSON. Copy it again on the live-mic page.'}};
 $('sendClaudeBtn').onclick=async()=>{const js=JSON.stringify(songOf($('title').value.trim()));
-  try{await navigator.clipboard.writeText(js);$('astat').textContent='Loop copied. In Claude Loop Maker, open step 6 and tap Paste JSON.'}catch(_){$('astat').textContent='Copy blocked: tap Copy loop JSON, then open Claude Loop Maker.'}
+  try{await navigator.clipboard.writeText(js);$('astat').textContent='Loop copied. In Game Studio, open Music, step 6, and tap Paste JSON.'}catch(_){$('astat').textContent='Copy blocked: tap Copy loop JSON, then open Game Studio.'}
   window.open(CLAUDE_URL+'#loop='+btoa(unescape(encodeURIComponent(JSON.stringify(loop)))),'_blank')};
 $('save').onclick=async()=>{if(!db)return;$('save').disabled=true;const s=JSON.parse(songJSON()),title=$('title').value.trim()||s.title;s.title=title;
   const id=(title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'loop').slice(0,40);
@@ -694,8 +694,8 @@ new ResizeObserver(()=>{drawTl();drawHumRoll();drawSong()}).observe($('tl'));
 /* ---- Claude Capabilities & Live-Mic Environment Detection ---- */
 const use=n=>window.claude&&claude.use?claude.use(n).catch(()=>null):Promise.resolve(null);
 use('sample').then(s=>{sample=s;$('sendCloudBox').hidden=!!s;
-  $('astat').textContent=s?'Pick a vibe and tap Elaborate with Claude.':'Running outside Claude — use "Open in Claude Loop Maker" above to arrange & save.';ui()});
-use('db').then(d=>{db=d;ui();if(!d){$('libstat').textContent='Saved library is available inside Claude Loop Maker.';return}
+  $('astat').textContent=s?'Pick a vibe and tap Elaborate with Claude.':'Running outside Claude — use "Open in Game Studio" above to arrange & save.';ui()});
+use('db').then(d=>{db=d;ui();if(!d){$('libstat').textContent='The music library is available inside Game Studio.';return}
   d.collection('songs').orderBy('savedAt','desc').limit(50).onSnapshot(snap=>{
     const docs=snap.docs||snap,box=$('lib');box.textContent='';
     if(!docs.length){box.innerHTML='<p class="stat">No saved songs yet.</p>';return}
