@@ -22,7 +22,7 @@
    song.echo: '1/8d' (default) | '1/8' | '1/4' | '1/16'
 */
 (function (root) {
-  const VERSION = '0.2.1';
+  const VERSION = '0.3.0';
   const hz = m => 440 * 2 ** ((m - 69) / 12);
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
@@ -41,8 +41,14 @@
     bell:      { label: 'Bell', group: 'lead', fm: [3.5, 3.2, .9], env: [.002, 1.6, 0, .9], level: .27 },
     organ:     { label: 'Organ', group: 'lead', osc: [['sine', 0, 0, 1], ['sine', 0, 12, .6], ['sine', 0, 19, .35], ['sine', 0, 24, .3]], env: [.006, .05, .95, .06], level: .15 },
     flute:     { label: 'Flute', group: 'lead', osc: [['sine', 0, 0, 1], ['triangle', 0, 12, .1]], breath: .05, env: [.05, .1, .85, .12], level: .2, vib: [5, 18, .3] },
+    epiano:    { label: 'E-Piano', group: 'lead', fm: [2, 1.4, .45], osc: [['sine', 0, 0, .55]], env: [.004, .9, .18, .35], level: .26, vib: [4.5, 6, .45] },
+    guitar:    { label: 'Acoustic', group: 'lead', osc: [['triangle', -3, 0, .75], ['sawtooth', 3, 0, .35]], filter: ['lowpass', 1100, 2.5, 3.0, .18], env: [.003, .55, .05, .18], level: .36 },
+    marimba:   { label: 'Marimba', group: 'lead', osc: [['sine', 0, 0, 1], ['sine', 0, 24, .28]], env: [.002, .26, 0, .12], level: .28 },
+    kalimba:   { label: 'Kalimba', group: 'lead', fm: [2.95, 1.6, .18], env: [.002, .52, 0, .25], level: .28 },
+    brass:     { label: 'Warm Brass', group: 'lead', osc: [['sawtooth', -7, 0, .55], ['sawtooth', 7, 0, .55]], filter: ['lowpass', 650, 2.2, 2.8, .32], env: [.045, .22, .78, .14], level: .30, vib: [5.2, 9, .35] },
     pad:       { label: 'Pad', group: 'pad', osc: [['sawtooth', -10, 0, .4], ['sawtooth', 10, 0, .4], ['triangle', 0, -12, .5]], filter: ['lowpass', 1200, 1, 1, 1], env: [.45, .5, .8, 1], level: .23 },
     strings:   { label: 'Strings', group: 'pad', osc: [['sawtooth', -7, 0, .5], ['sawtooth', 7, 0, .5], ['sawtooth', 0, 12, .15]], filter: ['lowpass', 2200, 1, .5, .5], env: [.18, .3, .85, .5], level: .24, vib: [5, 8, .4] },
+    choir:     { label: 'Choir Pad', group: 'pad', osc: [['sine', -6, 0, .6], ['triangle', 6, 0, .45], ['sine', 0, 12, .25]], filter: ['lowpass', 1600, 1.6, .7, .8], env: [.35, .4, .85, .8], level: .24, vib: [4.8, 12, .45] },
     chipbass:  { label: 'Chip bass', group: 'bass', osc: [['triangle', 0, 0, 1], ['square', 0, 12, .55]], env: [.003, .08, .85, .05], level: .33 },
     pulsebass: { label: 'Pulse bass', group: 'bass', osc: [['square', 0, 0, .8], ['pulse25', 0, 12, .25]], filter: ['lowpass', 1500, 1, 1, .2], env: [.003, .1, .75, .05], level: .34 },
     synthbass: { label: 'Synth bass', group: 'bass', osc: [['sawtooth', 0, 0, .7], ['square', 0, -12, .45], ['sawtooth', 5, 12, .2]], filter: ['lowpass', 420, 7, 3.5, .16], env: [.003, .2, .65, .06], level: .45 },
