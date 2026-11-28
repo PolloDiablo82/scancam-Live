@@ -236,13 +236,17 @@ details{border-top:1.5px solid var(--line);padding-top:10px}summary{cursor:point
   <section class="card" id="s6" hidden>
     <div class="card-head"><h2>6. Elaborate with AI</h2><span class="sub">Claude turns your tune + beat into full game music with Calm / Fight / Boss layers.</span></div>
     <div id="sendCloudBox" class="tip" hidden>
-      You're on the live-mic page. Tap the button: your loop is copied, Game Studio opens, then tap <b>Paste JSON</b> in Music, step 6.
-      <div class="row" style="margin-top:8px"><button id="sendClaudeBtn" class="accent">Open in Game Studio →</button><button id="cpy2">Copy loop JSON</button></div>
+      <b>Finish it here, then send it.</b> Tap <b>Auto-arrange</b> for a full calm / fight / boss version (free, no AI), give it a name, pick where it goes and tap <b>Send to Game Studio</b>, then choose LocalSend and your laptop. It lands in Game Studio's Music library within a minute. Want more? Open it there and tap Elaborate with Claude.
+      <div class="row" style="margin-top:8px"><label for="dest" class="sub" style="color:inherit">Save to</label><select id="dest" aria-label="Save to"></select></div>
+      <div class="row" style="margin-top:8px"><button id="sendStudio" class="accent">Send to Game Studio →</button><button id="cpy2">Copy loop JSON</button></div>
+      <p class="sub" id="destNote" style="margin:6px 0 0;color:inherit"></p>
+      <details id="mineBox" style="margin-top:8px"><summary>Loops kept on this phone</summary><div id="mine" class="lib" style="margin-top:6px"></div></details>
     </div>
     <div class="row" id="styles"></div>
     <div class="row">
       <input id="style" type="text" class="wide" value="8-bit chiptune, upbeat, loopable" aria-label="Music style">
       <select id="len" aria-label="Track length"><option value="0">Same length</option><option value="8" selected>8 bars</option><option value="16">16 bars</option></select>
+      <button id="auto" class="accent">Auto-arrange (free)</button>
       <button id="go" class="solid" disabled>Elaborate with Claude</button>
     </div>
     <p id="astat" class="stat">Connecting to Claude…</p>
@@ -318,6 +322,10 @@ function normLoop(o){
     drums:o.drums?cut(o.drums.notes||o.drums):beatNotes(beat,bars)}}
 
 // Load from #loop=<base64> hash if sent from GitHub Pages live-mic page, else localStorage
+function takeGames(){try{if(location.hash.startsWith('#gs=')){const j=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(4)))));
+    const g=(Array.isArray(j.games)?j.games:[]).filter(x=>x&&typeof x.id==='string'&&/^[a-z0-9-]{1,60}$/.test(x.id)).map(x=>({id:x.id,title:String(x.title||x.id).slice(0,40)}));
+    localStorage.setItem('gs.games',JSON.stringify(g));history.replaceState(null,'',location.pathname+location.search)}}catch(_){}}
+takeGames();
 function loadInitial(){
   try{
     if(location.hash.startsWith('#loop=')){
@@ -661,9 +669,68 @@ $('pasteGo').onclick=()=>{const raw=$('pasteTa').value.trim();if(!raw)return;
   try{const j=JSON.parse(raw);push();loop=normLoop(j.source||j);res=j.layers?clean(j,j.steps):null;sync();renderRes();drawSong();
     $('pasteTa').value='';$('pasteBox').hidden=true;$('pasteBtn').setAttribute('aria-expanded','false');$('astat').textContent='Loaded loop from JSON.'}
   catch(_){$('astat').textContent='Could not read that JSON. Copy it again on the live-mic page.'}};
-$('sendClaudeBtn').onclick=async()=>{const js=JSON.stringify(songOf($('title').value.trim()));
-  try{await navigator.clipboard.writeText(js);$('astat').textContent='Loop copied. In Game Studio, open Music, step 6, and tap Paste JSON.'}catch(_){$('astat').textContent='Copy blocked: tap Copy loop JSON, then open Game Studio.'}
-  window.open(CLAUDE_URL+'#loop='+btoa(unescape(encodeURIComponent(JSON.stringify(loop)))),'_blank')};
+/* ---- Send to Game Studio: a gsloop_*.json file over LocalSend to the laptop, where the Game Studio app files it ---- */
+const slug=t=>(String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'loop').slice(0,40);
+function knownGames(){try{const g=JSON.parse(localStorage.getItem('gs.games')||'[]');return Array.isArray(g)?g:[]}catch(_){return[]}}
+function fillDest(){const sel=$('dest'),G=knownGames(),keep=sel.value||localStorage.getItem('gs.dest')||'library';sel.textContent='';
+  const add=(v,t)=>{const o=document.createElement('option');o.value=v;o.textContent=t;sel.append(o)};add('library','Library only');for(const g of G)add(g.id,g.title);
+  sel.value=[...sel.options].some(o=>o.value===keep)?keep:'library';
+  $('destNote').textContent=G.length?'':"Your games appear here after you open this page once from Game Studio's Music tab (Open Live Mic Hum)."}
+function mine(){try{const m=JSON.parse(localStorage.getItem('loopmaker.mine')||'[]');return Array.isArray(m)?m:[]}catch(_){return[]}}
+function keepMine(pkg){const m=mine().filter(x=>x.title!==pkg.title);m.unshift(pkg);try{localStorage.setItem('loopmaker.mine',JSON.stringify(m.slice(0,20)))}catch(_){}renderMine()}
+function renderMine(){const box=$('mine');box.textContent='';const m=mine();
+  if(!m.length){const p=document.createElement('p');p.className='stat';p.textContent='Nothing yet: every loop you send is kept here too.';box.append(p);return}
+  for(const pkg of m){const b=document.createElement('button');b.className='song';const n=document.createElement('b');n.textContent=pkg.title;
+    const t=document.createElement('span');t.textContent=new Date(pkg.at).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});b.append(n,t);
+    b.onclick=()=>{try{const j=pkg.song;stop();push();if(j.source)loop=normLoop(j.source);res=j.layers?clean(j,j.steps):null;$('title').value=pkg.title;
+      hist=[];sync();renderRes();drawSong();$('astat').textContent=`Loaded "${pkg.title}". Send it again or change it.`}catch(_){$('astat').textContent='That loop could not be opened.'}};box.append(b)}}
+$('dest').onchange=()=>{try{localStorage.setItem('gs.dest',$('dest').value)}catch(_){}};
+$('sendStudio').onclick=async()=>{
+  if(!['lead','bass','chords'].some(id=>loop[id].notes.length)){$('astat').textContent='Hum a melody in Step 4 first.';return}
+  const s=JSON.parse(songJSON()),title=($('title').value.trim()||(res&&res.title)||'My loop').slice(0,60);s.title=title;$('title').value=title;
+  const dest=$('dest').value,pkg={type:'gs-song',v:1,title,projects:dest&&dest!=='library'?[dest]:[],at:Date.now(),song:s};
+  const name=`gsloop_${slug(title)}_${pkg.at.toString(36)}.json`,file=new File([JSON.stringify(pkg)],name,{type:'application/json'});keepMine(pkg);
+  try{if(!navigator.canShare||!navigator.canShare({files:[file]}))throw new Error('unsupported');await navigator.share({files:[file],title:'Song '+title});
+    $('astat').textContent=`Sent "${title}". Pick LocalSend and your laptop if you haven't; it shows up in Game Studio's Music library within a minute.`}
+  catch(e){if(e&&e.name==='AbortError'){$('astat').textContent='Not sent. It is kept on this phone below.';return}
+    const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;document.body.append(a);a.click();a.remove();
+    $('astat').textContent=`Saved ${name} to Downloads: send it to the laptop with LocalSend.`}};
+
+/* ---- Auto-arrange: a full calm / fight / boss version made right here, no AI ---- */
+function autoArrange(){
+  if(!['lead','bass','chords'].some(id=>loop[id].notes.length)){$('astat').textContent='Hum a melody in Step 4 first.';return}
+  const LB=loop.bars,B=Math.max(LB,+$('len').value||LB),S=B*16,src=LB*16,reps=Math.ceil(B/LB);
+  const rep=a=>{const o=[];for(let k=0;k<reps;k++)for(const n of a)if(n[0]+k*src<S)o.push([n[0]+k*src,Math.min(n[1],S-n[0]-k*src),n[2]]);return o};
+  const r0=NAMES.indexOf(loop.root),minor=loop.mood!=='major';
+  const CH=minor?[[0,[0,3,7]],[8,[0,4,7]],[10,[0,4,7]],[5,[0,3,7]],[7,[0,3,7]],[3,[0,4,7]]]:[[0,[0,4,7]],[5,[0,4,7]],[7,[0,4,7]],[9,[0,3,7]],[2,[0,3,7]],[4,[0,3,7]]];
+  const DEF=minor?[0,8,10,7]:[0,9,5,7];
+  let lead=rep(loop.lead.notes);const med=lead.length?lead.map(n=>n[2]).sort((a,b)=>a-b)[lead.length>>1]:67,sh=med<62?12:med>84?-12:0;lead=lead.map(n=>[n[0],n[1],clamp(n[2]+sh,48,92)]);
+  const chords=[];for(let b=0;b<B;b++){const inBar=lead.filter(n=>n[0]>=b*16&&n[0]<b*16+16);let best=null,bs=-1;
+    for(const[d,iv]of CH){let sc=d===DEF[b%4]?.6:0;if(b%4===0&&d===0)sc+=.8;for(const n of inBar)if(iv.includes(pc(n[2]-r0-d)))sc+=n[1];if(sc>bs){bs=sc;best=[d,iv]}}chords.push(best)}
+  const near=(pcv,lo)=>lo+pc(pcv-lo);
+  const pad=[],bells=[],arp=[],bass=[],drive=[],counter=[];
+  chords.forEach(([d,iv],b)=>{const o=b*16,root=pc(r0+d);
+    for(const i of iv)pad.push([o,16,near(root+i,55),.7]);
+    const tones=[...iv.map(i=>near(root+i,60)),near(root,60)+12];for(let k=0;k<8;k++)arp.push([o+k*2,2,tones[k%4],k%2?.45:.6]);
+    for(let k=0;k<4;k++)bells.push([o+k*4,4,near(root+iv[k%3],72),.4]);
+    const br=near(root,36);if(!loop.bass.notes.length)bass.push([o,4,br],[o+6,2,br],[o+8,4,br],[o+14,2,br+7>47?br-5:br+7]);
+    for(let k=0;k<8;k++)drive.push([o+k*2,2,k===7?br+12:br,k%2?.7:.95])});
+  const bassN=loop.bass.notes.length?rep(loop.bass.notes):bass;
+  for(const n of lead)if(n[1]>=2&&n[0]+3<S)counter.push([n[0]+3,Math.min(2,S-n[0]-3),clamp(n[2]+12,60,96),.42]);
+  let drums=loop.drums.length?rep(loop.drums):beatNotes('simple',B);drums=drums.filter(n=>n[2]!==49);
+  for(let b=0;b<B;b+=4){drums.push([b*16,1,49]);const e=Math.min(S,(b+4)*16)-16;if(e>0)drums=drums.filter(n=>!(n[0]>=e+12&&n[0]<e+16)).concat([[e+12,1,50,.8],[e+13,1,47,.8],[e+14,1,45,.9],[e+15,1,38,1]])}
+  const hats=[],tick=[];for(let st=0;st<S;st++){hats.push([st,1,42,st%4?.3:.55]);if(st%2===0)tick.push([st,1,st%8===4?37:44,.3])}
+  const fxL={reverb:.18,echo:.12},T=(name,role,inst,vol,notes,fx,pan)=>({name,role,inst,vol,pan:pan||0,fx,notes});
+  const j={title:($('title').value.trim()||'My loop'),bpm:loop.bpm,steps:S,echo:'1/8d',defaultLayer:'fight',comment:'Auto-arranged on the phone: your melody with chords worked out from it, a calm, a fight and a boss version.',
+    layers:{calm:['Calm melody','Pad','Bells','Bass','Tick'],fight:['Melody','Pad','Arp','Bass','Drums'],boss:['Melody','Counter','Pad','Arp','Drive bass','Drums','Hats']},
+    tracks:[T('Melody','lead',loop.lead.inst,.72,lead,fxL),T('Calm melody','lead','flute',.62,lead,{reverb:.3,echo:.18}),
+      T('Counter','counter','bell',.4,counter,{reverb:.3,echo:.2},.3),T('Pad','harmony','pad',.42,pad,{reverb:.35,chorus:.3}),
+      T('Arp','harmony','pluck',.45,arp,{reverb:.2,echo:.2},-.3),T('Bells','harmony','bell',.4,bells,{reverb:.4,echo:.25},.25),
+      T('Bass','bass',loop.bass.notes.length?loop.bass.inst:'synthbass',.78,bassN,{reverb:.03}),T('Drive bass','bass','pulsebass',.7,drive,{reverb:.03}),
+      T('Drums','drums',loop.kit,.85,drums,{reverb:.07}),T('Hats','drums',loop.kit,.6,hats,{reverb:.05},.1),T('Tick','drums','chip',.5,tick,{reverb:.1})]};
+  stop();res=clean(j,S);hist=[{role:'user',content:prompt()},{role:'assistant',content:JSON.stringify(resSong())}];
+  $('title').value=res.title;$('astat').textContent=`${res.title} · ${res.bpm} BPM · ${res.steps/16} bars. ${res.comment}`;renderRes();drawSong();playRes();ui()}
+$('auto').onclick=autoArrange;
 $('save').onclick=async()=>{if(!db)return;$('save').disabled=true;const s=JSON.parse(songJSON()),title=$('title').value.trim()||s.title;s.title=title;
   const id=(title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'loop').slice(0,40);
   try{await db.collection('songs').doc(id).set({title,bpm:s.bpm,steps:s.steps,key:s.key,savedAt:Date.now(),json:JSON.stringify(s)});$('astat').textContent=`Saved "${title}" to the library.`}
@@ -693,8 +760,8 @@ new ResizeObserver(()=>{drawTl();drawHumRoll();drawSong()}).observe($('tl'));
 
 /* ---- Claude Capabilities & Live-Mic Environment Detection ---- */
 const use=n=>window.claude&&claude.use?claude.use(n).catch(()=>null):Promise.resolve(null);
-use('sample').then(s=>{sample=s;$('sendCloudBox').hidden=!!s;
-  $('astat').textContent=s?'Pick a vibe and tap Elaborate with Claude.':'Running outside Claude — use "Open in Game Studio" above to arrange & save.';ui()});
+use('sample').then(s=>{sample=s;$('sendCloudBox').hidden=!!s;if(!s){fillDest();renderMine();$('go').hidden=$('styles').hidden=$('style').hidden=$('revB').parentNode.hidden=true}
+  $('astat').textContent=s?'Tap Auto-arrange (free) or pick a vibe and Elaborate with Claude.':'Tap Auto-arrange for a full version, then Send to Game Studio.';ui()});
 use('db').then(d=>{db=d;ui();if(!d){$('libstat').textContent='The music library is available inside Game Studio.';return}
   d.collection('songs').orderBy('savedAt','desc').limit(50).onSnapshot(snap=>{
     const docs=snap.docs||snap,box=$('lib');box.textContent='';
