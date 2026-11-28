@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loop Maker — Guided Music Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: guided pocket music studio — hum a tune, add a beat, let Claude arrange it
+   LAYOUT: sticky yellow transport + 6-step wizard pills, focused step card, live loop strip */
+:root{color-scheme:light dark;--bg:light-dark(#f7f5ee,#121110);--ink:light-dark(#141310,#f2eee4);--mute:light-dark(#5b574c,#a8a293);--plate:#ffd400;--roll:light-dark(#fff6bf,#1b1912);--grid:light-dark(#00000018,#ffffff14);--gridb:light-dark(#00000040,#ffffff36);--note:light-dark(#141310,#ffd400);--red:#ff3b30;--blue:light-dark(#2563c9,#6aa3ff);--teal:light-dark(#0f8f78,#3fd1b4);--line:light-dark(#ddd6c2,#34312a);--card:light-dark(#ffffff,#1c1a16)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Inter,system-ui,sans-serif;overflow-x:clip;padding-bottom:44px}
+h1,h2,h3{font-family:'Chakra Petch',system-ui,sans-serif;line-height:1.1;margin:0}
+h2{font-size:24px}h3{font-size:17px}
+button,select,input{font:600 15px/1.1 Inter,system-ui,sans-serif;min-height:44px;border-radius:11px}
+button{padding:0 14px;border:2px solid var(--ink);background:transparent;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;touch-action:manipulation}
+button:disabled{opacity:.38;cursor:default}
+select,input[type=text],input[type=number]{font-weight:500;font-size:16px;padding:0 10px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+textarea{font:400 14px/1.4 Inter,system-ui,sans-serif;padding:8px 10px;border:2px solid var(--line);border-radius:11px;background:var(--card);color:var(--ink);min-height:88px;resize:vertical}
+input[type=range]{accent-color:var(--ink);height:32px;cursor:pointer}
+input[type=checkbox]{width:20px;height:20px;min-height:0;accent-color:var(--ink)}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+[hidden]{display:none!important}
+
+/* Sticky top faceplate */
+.top{position:sticky;top:0;z-index:20;background:var(--plate);color:#111;border-bottom:2px solid #111}
+.bar{max-width:960px;margin:0 auto;padding:8px 12px 6px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar button{border-color:#111;color:#111}
+#play{min-width:52px;font-size:17px}#play.on{background:#111;color:var(--plate)}
+.pill-info{font:700 13px 'Chakra Petch',sans-serif;background:#fff8d0;border:1.5px solid #111;border-radius:999px;padding:6px 12px;margin-right:auto}
+.tlbox{position:relative;height:46px;background:var(--roll);border-top:1.5px solid #111;border-bottom:1.5px solid #111}
+#tl{position:absolute;inset:0;width:100%;height:100%}
+#count{position:absolute;inset:0;display:grid;place-items:center;font:700 32px 'Chakra Petch',sans-serif;color:var(--red);pointer-events:none}
+
+/* Stepper */
+.steps{max-width:960px;margin:0 auto;padding:8px 10px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.stp{min-height:36px;padding:0 12px;border-radius:999px;border:1.5px solid #111;background:#fff8d0;color:#111;font:700 13px 'Chakra Petch',sans-serif;flex:0 0 auto}
+.stp[aria-current=step]{background:#111;color:var(--plate)}
+.stp.done::after{content:' ✓';opacity:.75}
+
+/* Main step cards */
+main{max-width:960px;margin:0 auto;padding:14px 12px 32px;display:grid;gap:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:14px}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sub{margin:0;font-size:14px;color:var(--mute)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:8px}
+.roots{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+@media(min-width:600px){.roots{grid-template-columns:repeat(12,minmax(0,1fr))}}
+
+.choice{min-height:56px;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;text-align:left;white-space:normal}
+.choice b{font:700 15px 'Chakra Petch',sans-serif}.choice small{font:500 12px Inter,sans-serif;color:var(--mute)}
+.choice[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.choice[aria-pressed=true] small{color:var(--plate)}
+
+.chip{min-height:38px;font-weight:600;font-size:14px;border:1.5px solid var(--ink);border-radius:999px;padding:0 13px}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.solid{background:var(--ink)!important;color:var(--bg)!important;border-color:var(--ink)!important}
+.accent{background:var(--plate)!important;color:#111!important;border-color:#111!important;font-weight:700}
+.hrec{background:var(--red)!important;border-color:var(--red)!important;color:#fff!important;font-weight:700;min-height:52px;font-size:16px;padding:0 18px}
+.hrec::before{content:'';width:12px;height:12px;border-radius:50%;background:#fff}
+.hrec.live{animation:blink .55s steps(2) infinite}
+@keyframes blink{50%{opacity:.55}}
+
+/* Hum roll & meter */
+.hum-box{background:#171511;color:#f2eee4;border-radius:14px;padding:12px;display:grid;gap:10px;border:2px solid #2e2a22}
+.hum-box button{border-color:#f2eee4;color:#f2eee4}
+.hum-box label{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:#d6d0c0}
+.hum-box input[type=checkbox]{accent-color:var(--plate)}
+.hum-meter{flex:1 1 90px;height:10px;border-radius:99px;background:#2f2c24;overflow:hidden;min-width:70px}
+.hum-meter>i{display:block;height:100%;width:0;background:var(--plate);transition:width 60ms linear}
+.hum-note{font:700 15px 'Chakra Petch',sans-serif;color:var(--plate);min-width:36px;text-align:center}
+.rollbox{position:relative;height:150px;background:#100f0c;border:1.5px solid #3a362a;border-radius:10px;overflow:hidden}
+.rollbox>canvas{position:absolute;inset:0;width:100%;height:100%;cursor:pointer}
+.nudge button{min-width:40px;min-height:38px;padding:0 10px}
+.tip{font-size:13px;color:#d6d0c0;background:#26221b;border-radius:10px;padding:8px 11px;margin:0}
+.tip a{color:var(--plate);font-weight:700}
+
+/* Mini optional keyboard */
+.kb{position:relative;height:130px;background:#111;border-radius:10px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.w,.k{position:absolute;top:0;border-radius:0 0 7px 7px}
+.w{height:100%;background:#fbf8ee;border:1px solid #111;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-size:11px;color:#6b6350}
+.k{height:60%;background:#1c1b19;border:1px solid #000;z-index:2}
+.w.on{background:var(--plate)}.k.on{background:var(--red)}
+
+/* AI arrangement & library */
+.fig{position:relative;height:clamp(180px,30vw,250px);border-radius:12px;overflow:hidden;background:var(--roll);border:2px solid var(--ink)}
+.fig>canvas{position:absolute;inset:0;width:100%;height:100%}
+.tk[aria-pressed=false]{opacity:.45;text-decoration:line-through}
+.sw{width:12px;height:12px;border-radius:3px;flex:none}
+.wide{flex:1 1 220px}
+.navrow{display:flex;justify-content:space-between;gap:10px;padding-top:4px;border-top:1px solid var(--line)}
+.lib{display:grid;gap:8px}
+.song{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:start;white-space:normal;height:auto;padding:10px 14px;border:1.5px solid var(--line)!important;background:var(--bg)}
+.song b{font-family:'Chakra Petch',sans-serif;font-size:17px}.song span{color:var(--mute);font-size:13px;white-space:nowrap}
+details{border-top:1.5px solid var(--line);padding-top:10px}summary{cursor:pointer;font-weight:700;min-height:32px;font-size:15px}
+.stat{margin:0;font-size:14px;color:var(--mute)}
+</style></head><body>
+
+<header class="top">
+  <div class="bar">
+    <button id="play" aria-label="Play loop">▶</button>
+    <span class="pill-info" id="pillInfo">100 BPM · Am · 4 bars</span>
+    <button id="undo" disabled>Undo</button>
+    <button id="toLib">Library</button>
+  </div>
+  <div class="tlbox"><canvas id="tl" aria-label="Loop preview"></canvas><div id="count"></div></div>
+  <nav class="steps" id="stepper" aria-label="Steps">
+    <button class="stp" data-s="1" aria-current="step">1. Speed</button>
+    <button class="stp" data-s="2">2. Tone</button>
+    <button class="stp" data-s="3">3. Sound</button>
+    <button class="stp" data-s="4">4. Hum</button>
+    <button class="stp" data-s="5">5. Beat</button>
+    <button class="stp" data-s="6">6. AI Finish</button>
+  </nav>
+</header>
+
+<main>
+  <!-- STEP 1: SPEED -->
+  <section class="card" id="s1">
+    <div class="card-head"><h2>1. Pick the speed</h2><span class="sub">How fast should your background music feel?</span></div>
+    <div class="grid2" id="speedPresets">
+      <button class="choice" data-bpm="80"><b>Chill / Slow</b><small>80 BPM · menus, calm</small></button>
+      <button class="choice" data-bpm="100"><b>Walk / Groove</b><small>100 BPM · exploring</small></button>
+      <button class="choice" data-bpm="120"><b>Upbeat</b><small>120 BPM · lively</small></button>
+      <button class="choice" data-bpm="140"><b>Action / Boss</b><small>140 BPM · intense</small></button>
+    </div>
+    <div class="row">
+      <input id="bpmRange" type="range" min="60" max="180" value="100" style="flex:1 1 160px" aria-label="Tempo slider">
+      <input id="bpm" type="number" min="60" max="180" value="100" style="width:78px;text-align:center" aria-label="BPM">
+      <button id="tapBtn">Tap tempo</button>
+      <button id="clickBtn" aria-pressed="false">Click preview</button>
+    </div>
+    <div class="row">
+      <span class="sub">Loop length:</span>
+      <button class="chip" data-bars="2">2 bars</button>
+      <button class="chip" data-bars="4">4 bars</button>
+      <button class="chip" data-bars="8">8 bars</button>
+      <span class="sub" style="margin-left:8px">Grid:</span>
+      <select id="snap" aria-label="Timing grid"><option value="2">Tidy (1/8)</option><option value="1">Fine (1/16)</option></select>
+    </div>
+    <div class="navrow"><span></span><button class="accent" data-go="2">Next: Pick Tone →</button></div>
+  </section>
+
+  <!-- STEP 2: TONE / MOOD -->
+  <section class="card" id="s2" hidden>
+    <div class="card-head"><h2>2. Pick the tone &amp; mood</h2><span class="sub">Sets the scale so your hummed melody always sounds in tune.</span></div>
+    <div class="grid3" id="moodPick">
+      <button class="choice" data-mood="minor"><b>Dark / Moody</b><small>Minor · adventure, battle</small></button>
+      <button class="choice" data-mood="major"><b>Bright / Happy</b><small>Major · village, sunny</small></button>
+      <button class="choice" data-mood="pent"><b>Chill / Flowing</b><small>Pentatonic · never clashes</small></button>
+    </div>
+    <div>
+      <p class="sub" style="margin-bottom:6px">Key note:</p>
+      <div class="roots" id="rootPick"></div>
+    </div>
+    <div class="row">
+      <button class="solid" id="refToneBtn">▶ Play reference tone</button>
+      <span class="sub" id="toneLabel">A minor — tap to hear your starting note before humming.</span>
+    </div>
+    <div class="navrow"><button data-go="1">← Speed</button><button class="accent" data-go="3">Next: Pick Sound →</button></div>
+  </section>
+
+  <!-- STEP 3: MELODY SOUND -->
+  <section class="card" id="s3" hidden>
+    <div class="card-head"><h2>3. Pick the melody sound</h2><span class="sub">Tap any sound to hear a quick preview in your key &amp; speed.</span></div>
+    <div class="grid3" id="instPick"></div>
+    <div class="navrow"><button data-go="2">← Tone</button><button class="accent" data-go="4">Next: Hum Melody →</button></div>
+  </section>
+
+  <!-- STEP 4: HUM MELODY -->
+  <section class="card" id="s4" hidden>
+    <div class="card-head"><h2>4. Hum your melody</h2><span class="sub">Sing "da-da-da" so notes separate cleanly — no keyboard needed.</span></div>
+    <div class="hum-box">
+      <div class="row">
+        <button id="humRec" class="hrec">Hum to beat</button>
+        <button id="humPick">Import voice memo</button>
+        <button id="humPlay" disabled>Hear my hum</button>
+        <button id="refTone2">Ref note</button>
+      </div>
+      <div class="row">
+        <span class="hum-note" id="humPitch">--</span>
+        <div class="hum-meter" aria-hidden="true"><i id="humLvl"></i></div>
+        <label><input id="humSnap" type="checkbox" checked> Snap to tone</label>
+        <label><input id="humOver" type="checkbox"> Overdub</label>
+      </div>
+      <p class="tip" id="humTip">Tip: press <b>Ref note</b> first so your voice matches the key, then hum along to the beat.</p>
+      <div class="rollbox"><canvas id="humRoll" aria-label="Your melody notes — tap any block to edit"></canvas></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="row nudge">
+          <button id="nUp" disabled title="Selected note up 1 semitone">↑</button>
+          <button id="nDn" disabled title="Selected note down 1 semitone">↓</button>
+          <button id="nDel" disabled title="Delete selected note">×</button>
+          <button id="oDn" title="Whole melody down 1 octave">−8va</button>
+          <button id="oUp" title="Whole melody up 1 octave">+8va</button>
+        </div>
+        <button id="clrLead">Clear melody</button>
+      </div>
+      <input id="humFile" class="vh" type="file" accept="audio/*,video/*,.m4a,.mp3,.wav,.ogg,.opus,.aac,.webm" tabindex="-1" aria-hidden="true">
+    </div>
+    <p class="stat" id="stat">No melody yet — tap <b>Hum to beat</b> or <b>Import voice memo</b>.</p>
+    <details id="kbDrawer"><summary>Optional: tap a few notes on a mini keyboard</summary>
+      <div class="row" style="margin:8px 0"><button id="kbRec" class="chip">Record on keys</button><span class="sub">Uses the same 4-click count-in.</span></div>
+      <div id="kb" class="kb"></div>
+    </details>
+    <div class="navrow"><button data-go="3">← Sound</button><button class="accent" data-go="5">Next: Add a Beat →</button></div>
+  </section>
+
+  <!-- STEP 5: REAL BEAT -->
+  <section class="card" id="s5" hidden>
+    <div class="card-head"><h2>5. Add a real beat</h2><span class="sub">Pick a drum groove and kit — plays live with your melody.</span></div>
+    <div class="grid3" id="beatPick">
+      <button class="choice" data-beat="off"><b>No drums</b><small>Melody only</small></button>
+      <button class="choice" data-beat="simple"><b>Simple</b><small>Steady classic beat</small></button>
+      <button class="choice" data-beat="dance"><b>Dance</b><small>Four-on-the-floor</small></button>
+      <button class="choice" data-beat="break"><b>Breakbeat</b><small>Syncopated energy</small></button>
+      <button class="choice" data-beat="half"><b>Slow / Half</b><small>Laid-back chill</small></button>
+      <button class="choice" data-beat="boss"><b>Boss Drive</b><small>Fast driving drums</small></button>
+    </div>
+    <div class="row">
+      <span class="sub">Drum kit:</span>
+      <span class="row" id="kitPick"></span>
+    </div>
+    <div class="row" style="border-top:1px solid var(--line);padding-top:10px">
+      <button id="autoBassBtn">Add simple bassline</button>
+      <button id="clrBassBtn">Clear bass</button>
+      <span class="sub" id="bassStat">Optional bass foundation under your melody.</span>
+    </div>
+    <div class="navrow"><button data-go="4">← Hum</button><button class="accent" data-go="6">Next: AI Finish →</button></div>
+  </section>
+
+  <!-- STEP 6: AI ELABORATE & LIBRARY -->
+  <section class="card" id="s6" hidden>
+    <div class="card-head"><h2>6. Elaborate with AI</h2><span class="sub">Claude turns your tune + beat into full game music with Calm / Fight / Boss layers.</span></div>
+    <div id="sendCloudBox" class="tip" hidden>
+      You're on the live-mic page. Tap the button: your loop is copied, Claude Loop Maker opens, then tap <b>Paste JSON</b> there in step 6.
+      <div class="row" style="margin-top:8px"><button id="sendClaudeBtn" class="accent">Open in Claude Loop Maker →</button><button id="cpy2">Copy loop JSON</button></div>
+    </div>
+    <div class="row" id="styles"></div>
+    <div class="row">
+      <input id="style" type="text" class="wide" value="8-bit chiptune, upbeat, loopable" aria-label="Music style">
+      <select id="len" aria-label="Track length"><option value="0">Same length</option><option value="8" selected>8 bars</option><option value="16">16 bars</option></select>
+      <button id="go" class="solid" disabled>Elaborate with Claude</button>
+    </div>
+    <p id="astat" class="stat">Connecting to Claude…</p>
+    <div class="fig"><canvas id="song" aria-label="AI arrangement"></canvas></div>
+    <div class="row" id="moodRow" hidden><span class="sub">Game mood:</span><div class="row" id="moods"></div></div>
+    <div class="row" id="tracks"></div>
+    <div class="row">
+      <button id="pRes" disabled>▶ AI version</button>
+      <button id="pMine">▶ My loop</button>
+      <button id="stop2">Stop</button>
+    </div>
+    <div class="row">
+      <input id="rev" type="text" class="wide" placeholder="Ask for changes: darker, busier drums, bell melody…" aria-label="Revision">
+      <button id="revB" disabled>Revise</button>
+    </div>
+    <div class="row">
+      <input id="title" type="text" class="wide" placeholder="Song name, e.g. Siang Strike market" aria-label="Song name">
+      <button id="save" class="solid" disabled>Save to library</button>
+      <button id="cpy">Copy JSON</button>
+      <button id="pasteBtn" aria-expanded="false">Paste JSON</button>
+    </div>
+    <div class="row" id="pasteBox" hidden>
+      <textarea id="pasteTa" class="wide" placeholder="Paste the loop JSON you copied on the live-mic page" aria-label="Loop JSON"></textarea>
+      <button id="pasteGo" class="solid">Load loop</button>
+    </div>
+    <details id="libDetails"><summary>Saved Library</summary>
+      <p class="sub" style="margin:6px 0">Saved songs are where Claude picks them up for your games. Tap one to load it.</p>
+      <div id="lib" class="lib"><p class="stat" id="libstat">Loading saved songs…</p></div>
+    </details>
+    <div class="navrow"><button data-go="5">← Beat</button><span></span></div>
+  </section>
+</main>
+
+<span id="probe" class="vh"></span>
+<script src="soundcard.js"></script>
+<script>
+{
+const $=id=>document.getElementById(id),SC=window.SoundCard;
+const CLAUDE_URL='https://claude.ai/artifact/TEB28SwhNtpMvN3hAr8bCe';
+const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'],WHITE=[0,2,4,5,7,9,11];
+const BEATS={
+  simple:{36:[0,8,10],38:[4,12],42:[0,2,4,6,8,10,12,14]},
+  dance:{36:[0,4,8,12],38:[4,12],46:[2,6,10,14]},
+  break:{36:[0,2,10],38:[4,7,12,15],42:[0,2,4,6,8,10,12,14]},
+  half:{36:[0,11],38:[8],42:[0,2,4,6,8,10,12,14]},
+  boss:{36:[0,3,6,8,11,14],38:[4,12],42:[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]}
+};
+const STYLES=['8-bit chiptune, upbeat','Dark synthwave, driving','Lo-fi chill, relaxed','Boss fight, intense','Calm village map, gentle'];
+const MOODS={
+  minor:{label:'minor',scale:[0,2,3,5,7,8,10],chord:[0,3,7],riff:[0,3,7,10]},
+  major:{label:'major',scale:[0,2,4,5,7,9,11],chord:[0,4,7],riff:[0,4,7,12]},
+  pent:{label:'minor pentatonic',scale:[0,3,5,7,10],chord:[0,3,7],riff:[0,3,5,7]}
+};
+const INST_SET=new Set(SC.instruments.map(i=>i.id)),KIT_SET=new Set(SC.kits.map(k=>k.id));
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)),pc=m=>((m%12)+12)%12,nm=m=>NAMES[pc(m)]+(Math.floor(m/12)-1);
+
+let loop,stepNum=1,undoS=[],P=null,clickOnly=false,kbRecOn=false,res=null,resP=null,resRaf=0,hist=[],sample=null,db=null,dSpec=null;
+let humState=null,humLast=null,humSel=-1,tapTimes=[];
+const skip=new Set(),steps=()=>loop.bars*16;
+const actx=()=>SC.context;
+
+function beatNotes(id,bars){const b=BEATS[id],o=[];if(!b)return o;for(let k=0;k<bars;k++)for(const[m,ss]of Object.entries(b))for(const s of ss)o.push([k*16+s,1,+m]);if(o.length)o.push([0,1,49]);return o}
+function normLoop(o){
+  o=o||{};
+  const n=x=>(Array.isArray(x)?x:[]).filter(q=>Array.isArray(q)&&q.length>=3).map(q=>[q[0]|0,Math.max(1,q[1]|0),q[2]|0]).filter(q=>q[0]>=0&&q[2]>=24&&q[2]<=108);
+  const bars=[2,4,8].includes(+o.bars)?+o.bars:4,S=bars*16,cut=a=>n(a).filter(q=>q[0]<S).map(q=>[q[0],Math.min(q[1],S-q[0]),q[2]]).slice(0,3000);
+  const tr=(role,def,vol,low,t)=>{t=t||{};const inst=INST_SET.has(t.inst)?t.inst:def;return{role,inst,vol:clamp(+t.vol||vol,.1,1),low:clamp((t.low|0)||low,24,84),notes:cut(t.notes)}};
+  const beat=BEATS[o.beat]||o.beat==='off'?o.beat:'simple';
+  const mood=MOODS[o.mood]?o.mood:'minor';
+  const root=NAMES.includes(o.root)?o.root:(typeof o.key==='string'&&NAMES.includes(o.key.replace('m',''))?o.key.replace('m',''):'A');
+  return{bpm:clamp(+o.bpm||100,60,180),bars,snap:+o.snap===1?1:2,beat,kit:KIT_SET.has(o.kit)?o.kit:'punchy',root,mood,
+    lead:tr('lead','chip',.72,60,o.lead),bass:tr('bass','pulsebass',.78,36,o.bass),chords:tr('harmony','strings',.5,60,o.chords),
+    drums:o.drums?cut(o.drums.notes||o.drums):beatNotes(beat,bars)}}
+
+// Load from #loop=<base64> hash if sent from GitHub Pages live-mic page, else localStorage
+function loadInitial(){
+  try{
+    if(location.hash.startsWith('#loop=')){
+      const raw=decodeURIComponent(escape(atob(location.hash.slice(6))));
+      const parsed=JSON.parse(raw);history.replaceState(null,'',location.pathname+location.search);
+      stepNum=6;return normLoop(parsed.source||parsed)}
+  }catch(_){}
+  try{return normLoop(JSON.parse(localStorage.getItem('loopmaker.v3')||localStorage.getItem('loopmaker.v2')||'null')||{})}catch(_){return normLoop({})}}
+
+loop=loadInitial();
+const keyStr=()=>loop.root+(loop.mood==='major'?'':'m');
+const save=()=>{try{localStorage.setItem('loopmaker.v3',JSON.stringify(loop))}catch(_){}};
+const push=()=>{undoS.push(JSON.stringify(loop));if(undoS.length>40)undoS.shift();ui()};
+const drumSpec=()=>{if(!dSpec||dSpec.inst!==loop.kit)dSpec={role:'drums',inst:loop.kit,vol:.85};return dSpec};
+const specOf=id=>id==='drums'?drumSpec():loop[id];
+
+/* ---- Player (count-in = steps -16..-1) ---- */
+const PARTS=['drums','lead','bass','chords'];
+function blip(t,acc){const c=actx(),o=c.createOscillator(),g=c.createGain();o.frequency.value=acc?1760:1180;g.gain.setValueAtTime(acc?.18:.1,t);g.gain.exponentialRampToValueAtTime(.001,t+.04);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.06)}
+function play(countIn,onlyClick){
+  stop(true);const c=actx();clickOnly=!!onlyClick;SC.setEchoTempo(loop.bpm);
+  P={next:countIn?-16:0,t:c.currentTime+.08,hist:[],cur:null};skip.clear();
+  P.timer=setInterval(tick,20);tick();P.raf=requestAnimationFrame(frame);ui()}
+function tick(){if(!P)return;const c=actx(),sp=60/loop.bpm/4,S=steps();
+  while(P.t<c.currentTime+.1){const n=P.next;
+    if(n<0){if(n%4===0)blip(P.t,n===-16)}
+    else if(clickOnly){if(n%4===0)blip(P.t,n%16===0)}
+    else{const s=n%S;for(const id of PARTS){const notes=id==='drums'?loop.drums:loop[id].notes,spec=specOf(id);
+      for(const q of notes)if(q[0]===s){if(skip.has(q)){skip.delete(q);continue}SC.note(spec,q[2],P.t,q[1]*sp)}}
+      if((kbRecOn||humState)&&s%4===0&&!loop.drums.length)blip(P.t,s%16===0)}
+    P.hist.push([P.t,n,sp]);if(P.hist.length>96)P.hist.shift();P.t+=sp;P.next++}}
+function frame(){if(!P)return;const now=actx().currentTime;let h=null;for(const x of P.hist)if(x[0]<=now)h=x;
+  if(h&&h!==P.cur){P.cur=h;const n=h[1];$('count').textContent=n<0?String(4-Math.floor((n+16)/4)):'';drawTl();if(stepNum===4)drawHumRoll()}
+  P.raf=requestAnimationFrame(frame)}
+function stop(keep){if(P){clearInterval(P.timer);cancelAnimationFrame(P.raf);P=null}clickOnly=false;
+  if(resP){resP.stop(.2);cancelAnimationFrame(resRaf)}
+  if(!keep){kbRecOn=false;stopHumRec(true)}
+  if(humLast&&humLast.src){try{humLast.src.stop()}catch(_){}humLast.src=null}
+  $('count').textContent='';$('clickBtn').setAttribute('aria-pressed','false');$('kbRec').setAttribute('aria-pressed','false');
+  ui();drawTl();drawHumRoll();drawSong()}
+
+/* ---- Step navigation ---- */
+function goStep(s){
+  stepNum=clamp(s,1,6);
+  for(let i=1;i<=6;i++)$('s'+i).hidden=(i!==stepNum);
+  for(const b of $('stepper').children){const n=+b.dataset.s;b.setAttribute('aria-current',n===stepNum?'step':'false');
+    b.classList.toggle('done',(n===4&&loop.lead.notes.length>0)||(n===5&&loop.drums.length>0)||(n===6&&!!res))}
+  if(stepNum===4){drawHumRoll();buildKb()}
+  if(stepNum===6)drawSong();
+  scrollTo({top:0,behavior:'smooth'});ui()}
+$('stepper').onclick=e=>{const b=e.target.closest('button');if(b)goStep(+b.dataset.s)};
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>goStep(+b.dataset.go));
+$('toLib').onclick=()=>{goStep(6);$('libDetails').open=true;setTimeout(()=>$('libDetails').scrollIntoView({behavior:'smooth'}),80)};
+
+/* ---- Step 1: Speed ---- */
+$('speedPresets').onclick=e=>{const b=e.target.closest('button');if(!b)return;loop.bpm=+b.dataset.bpm;SC.setEchoTempo(loop.bpm);sync()};
+$('bpmRange').oninput=e=>{loop.bpm=+e.target.value;SC.setEchoTempo(loop.bpm);sync()};
+$('bpm').onchange=e=>{loop.bpm=clamp(Math.round(+e.target.value)||loop.bpm,60,180);SC.setEchoTempo(loop.bpm);sync()};
+$('tapBtn').onclick=()=>{const now=performance.now();tapTimes=tapTimes.filter(t=>now-t<2500);tapTimes.push(now);
+  blip(actx().currentTime,true);
+  if(tapTimes.length>=2){const diffs=[];for(let i=1;i<tapTimes.length;i++)diffs.push(tapTimes[i]-tapTimes[i-1]);
+    const avg=diffs.reduce((a,b)=>a+b,0)/diffs.length;loop.bpm=clamp(Math.round(60000/avg),60,180);SC.setEchoTempo(loop.bpm);sync()}};
+$('clickBtn').onclick=()=>{if(P&&clickOnly){stop();return}play(false,true);$('clickBtn').setAttribute('aria-pressed','true')};
+document.querySelectorAll('[data-bars]').forEach(b=>b.onclick=()=>{
+  const nb=+b.dataset.bars,ob=loop.bars;if(nb===ob)return;push();const S=nb*16;
+  const fit=a=>{if(nb>ob){const c=a.slice();for(let k=1;k<nb/ob;k++)for(const n of c)a.push([n[0]+k*ob*16,n[1],n[2]])}else a=a.filter(n=>n[0]<S).map(n=>[n[0],Math.min(n[1],S-n[0]),n[2]]);return a};
+  for(const id of['lead','bass','chords'])loop[id].notes=fit(loop[id].notes);loop.drums=BEATS[loop.beat]?beatNotes(loop.beat,nb):fit(loop.drums);loop.bars=nb;sync()});
+$('snap').onchange=e=>{loop.snap=+e.target.value;save()};
+
+/* ---- Step 2: Tone & Mood ---- */
+function playRefTone(){const c=actx(),r=60+NAMES.indexOf(loop.root),ch=MOODS[loop.mood].chord,t=c.currentTime+.02;
+  for(const iv of ch)SC.note({role:'harmony',inst:'pad',vol:.45},r+iv,t,1.1);
+  SC.note({role:'lead',inst:'soft',vol:.7},r,t,.7)}
+$('moodPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;loop.mood=b.dataset.mood;sync();playRefTone()};
+NAMES.forEach(n=>{const b=document.createElement('button');b.className='chip';b.textContent=n;b.dataset.root=n;b.style.padding='0';
+  b.onclick=()=>{loop.root=n;sync();playRefTone()};$('rootPick').append(b)});
+$('refToneBtn').onclick=$('refTone2').onclick=playRefTone;
+
+/* ---- Step 3: Melody Sound ---- */
+const MEL_INSTS=SC.instruments.filter(i=>i.group==='lead'||i.group==='pad');
+MEL_INSTS.forEach(i=>{const b=document.createElement('button');b.className='choice';b.dataset.inst=i.id;
+  b.innerHTML=`<b>${i.label}</b><small>${i.group==='pad'?'Warm pad':'Melody synth'}</small>`;
+  b.onclick=()=>{loop.lead.inst=i.id;sync();const c=actx(),r=60+NAMES.indexOf(loop.root),sp=60/loop.bpm/2;
+    MOODS[loop.mood].riff.forEach((iv,k)=>SC.note(loop.lead,r+iv,c.currentTime+.02+k*sp,sp*.85))};
+  $('instPick').append(b)});
+
+/* ---- Step 4: Upgraded Hum-to-Notes DSP ---- */
+function biquad(x,sr,type,fc,Q=.7071){const w0=2*Math.PI*fc/sr,c=Math.cos(w0),s=Math.sin(w0),al=s/(2*Q);let b0,b1,b2,a0,a1,a2;
+  if(type==='hp'){b0=(1+c)/2;b1=-(1+c);b2=(1+c)/2;a0=1+al;a1=-2*c;a2=1-al}else{b0=(1-c)/2;b1=1-c;b2=(1-c)/2;a0=1+al;a1=-2*c;a2=1-al}
+  b0/=a0;b1/=a0;b2/=a0;a1/=a0;a2/=a0;const y=new Float32Array(x.length);let x1=0,x2=0,y1=0,y2=0;
+  for(let i=0;i<x.length;i++){const x0=x[i],y0=b0*x0+b1*x1+b2*x2-a1*y1-a2*y2;y[i]=y0;x2=x1;x1=x0;y2=y1;y1=y0}return y}
+const med=a=>{const s=[...a].sort((x,y)=>x-y);return s[s.length>>1]};
+const pct=(a,p)=>{const s=Float32Array.from(a).sort();return s[Math.min(s.length-1,Math.max(0,Math.floor(s.length*p)))]};
+
+function humToNotes(input,sr){
+  const fmin=70,fmax=850,x=biquad(biquad(input,sr,'hp',75),sr,'lp',950);
+  const W=Math.round(sr*.046),H=Math.round(sr*.0116),minT=Math.max(4,Math.floor(sr/fmax)),maxT=Math.ceil(sr/fmin);
+  const n=Math.max(0,Math.floor((x.length-W-maxT)/H)),rms=new Float32Array(n),d=new Float32Array(maxT+2),cands=new Array(n);
+  for(let i=0;i<n;i++){const o=i*H;let e=0;for(let j=0;j<W;j++)e+=x[o+j]*x[o+j];rms[i]=Math.sqrt(e/W);
+    let run=0;d[0]=1;for(let t=1;t<=maxT;t++){let q=0;for(let j=0;j<W;j++){const v=x[o+j]-x[o+j+t];q+=v*v}run+=q;d[t]=run>0?q*t/run:1}
+    const list=[];for(let t=minT+1;t<maxT-1;t++)if(d[t]<.42&&d[t]<=d[t-1]&&d[t]<d[t+1]){
+      const a=d[t-1],b=d[t],c=d[t+1],den=a-2*b+c,hz=sr/(t+(den?.5*(a-c)/den:0));
+      if(hz>=fmin&&hz<=fmax)list.push({m:69+12*Math.log2(hz/440),cmndf:b})}
+    list.sort((a,b)=>a.cmndf-b.cmndf);cands[i]=list.slice(0,4)}
+  const floor=pct(rms,.15),peak=pct(rms,.95),thr=Math.max(floor*2.2,peak*.14,1e-4),K=4,S=K+1;
+  let prevC=new Float64Array(S).fill(1e9),prevM=new Float64Array(S).fill(NaN);prevC[0]=0;
+  const back=new Int8Array(n*S),stM=new Float32Array(n*S);
+  for(let i=0;i<n;i++){const voiced=rms[i]>thr&&cands[i].length>0,curC=new Float64Array(S).fill(1e9),curM=new Float64Array(S).fill(NaN);
+    const uvEmit=voiced&&cands[i][0].cmndf<.12?.55:.18;
+    for(let p=0;p<S;p++){const c=prevC[p]+(p?.18:0)+uvEmit;if(c<curC[0]){curC[0]=c;back[i*S]=p}}
+    if(voiced)for(let k=0;k<cands[i].length;k++){const st=k+1,{m,cmndf}=cands[i][k];curM[st]=m;stM[i*S+st]=m;
+      const emit=cmndf*1.4+(m>74?.08:0);
+      for(let p=0;p<S;p++){let tr=.22;if(p>0&&!isNaN(prevM[p])){const dm=Math.abs(m-prevM[p]);tr=Math.min(.65,.06*dm)+(Math.abs(dm-12)<1.3?.85:0)}
+        const c=prevC[p]+tr+emit;if(c<curC[st]){curC[st]=c;back[i*S+st]=p}}}
+    prevC=curC;prevM=curM}
+  let bestS=0;for(let s=1;s<S;s++)if(prevC[s]<prevC[bestS])bestS=s;
+  const rawM=new Float32Array(n).fill(NaN),conf=new Float32Array(n);
+  for(let i=n-1;i>=0;i--){if(bestS>0){rawM[i]=stM[i*S+bestS];conf[i]=Math.max(.05,1-cands[i][bestS-1].cmndf)}bestS=back[i*S+bestS]}
+  let cs=0,sn=0;for(let i=0;i<n;i++)if(!isNaN(rawM[i])){const fr=rawM[i]-Math.round(rawM[i]);cs+=conf[i]*Math.cos(2*Math.PI*fr);sn+=conf[i]*Math.sin(2*Math.PI*fr)}
+  const off=Math.atan2(sn,cs)/(2*Math.PI),mm=new Float32Array(n).fill(NaN),db=new Float32Array(n);
+  for(let i=0;i<n;i++){db[i]=20*Math.log10(Math.max(rms[i],1e-6));if(isNaN(rawM[i]))continue;
+    const w=[];for(let k=i-3;k<=i+3;k++)if(k>=0&&k<n&&!isNaN(rawM[k]))w.push(rawM[k]-off);mm[i]=med(w)}
+  const hop=H/sr,notes=[];let curN=null;
+  const close=()=>{if(curN){const dur=(curN.e-curN.s+1)*hop;if(dur>=.075)notes.push({t:curN.s*hop,d:dur,mf:med(curN.v)})}curN=null};
+  for(let i=0;i<n;i++){const v=mm[i];if(isNaN(v)){close();continue}
+    if(curN){const same=Math.abs(v-curN.ref)<.72,dur=(i-curN.s)*hop,dip=dur>=.09&&curN.dip&&(db[i]-curN.minDb>=3.8);
+      if(same&&!dip){curN.v.push(v);curN.e=i;curN.ref=med(curN.v.slice(-8));if(db[i]>curN.pk)curN.pk=db[i];
+        if(curN.pk-db[i]>=4.0){curN.dip=true;curN.minDb=Math.min(curN.minDb,db[i])}else if(curN.dip)curN.minDb=Math.min(curN.minDb,db[i]);continue}
+      close()}
+    curN={s:i,e:i,v:[v],ref:v,pk:db[i],minDb:db[i],dip:false}}
+  close();return{notes,cents:Math.round(off*100),mm,hop}}
+
+async function decodeTo11k(audioBuf){
+  const SR=11025,dur=Math.min(audioBuf.duration,32),off=new OfflineAudioContext(1,Math.max(1,Math.ceil(dur*SR)),SR);
+  const s=off.createBufferSource();s.buffer=audioBuf;s.connect(off.destination);s.start();
+  return{pcm:(await off.startRendering()).getChannelData(0),sr:SR}}
+
+function quantHum(raw,t0,fromFile){
+  if(!raw.length)return[];const sp=60/loop.bpm/4,u=loop.snap,S=steps();
+  const root=NAMES.indexOf(loop.root),scale=MOODS[loop.mood].scale,snap=$('humSnap').checked;
+  const medM=med(raw.map(q=>q.mf)),octShift=Math.round((66-medM)/12)*12,baseT=fromFile?raw[0].t:t0,out=[];
+  for(const q of raw){let m=Math.round(q.mf);
+    if(snap&&!scale.includes(pc(m-root))){
+      let bestM=m,bestD=99;for(let d=-2;d<=2;d++)if(scale.includes(pc(m+d-root))&&Math.abs((m+d)-q.mf)<bestD){bestD=Math.abs((m+d)-q.mf);bestM=m+d}
+      m=bestM}
+    const st=Math.round((q.t-baseT)/sp/u)*u,ln=Math.max(u,Math.round(q.d/sp/u)*u);
+    if(st<0||st>=S)continue;out.push([st,Math.min(ln,S-st),clamp(m+octShift,36,92)])}
+  out.sort((a,b)=>a[0]-b[0]);
+  for(let i=1;i<out.length;i++)if(out[i][0]<=out[i-1][0])out[i][0]=Math.min(S-u,out[i-1][0]+u);
+  for(let i=0;i<out.length-1;i++)out[i][1]=Math.max(1,Math.min(out[i][1],out[i+1][0]-out[i][0]));
+  return out.filter(n=>n[0]<S)}
+
+function applyHum(audioBuf,pcm,sr,t0,fromFile){
+  const resH=humToNotes(pcm,sr);
+  if(!resH.notes.length){$('stat').textContent='No clear notes heard. Hum closer to the mic with clear "da-da-da" syllables.';return}
+  const ns=quantHum(resH.notes,t0,fromFile);
+  if(!ns.length){$('stat').textContent='Notes fell outside the loop window. Try humming right after the 4-click count-in.';return}
+  push();loop.lead.notes=$('humOver').checked?loop.lead.notes.concat(ns):ns;
+  humLast={buf:audioBuf,t0:fromFile?resH.notes[0].t:t0,cents:resH.cents};humSel=-1;$('humPlay').disabled=!audioBuf;
+  $('stat').textContent=`Captured ${ns.length} notes (${resH.cents>=0?'+':''}${resH.cents}¢ tuning corrected) in ${loop.root} ${MOODS[loop.mood].label}. Tap any block to nudge ↑/↓ or ×.`;
+  sync();drawHumRoll();play()}
+
+function stopHumRec(cancel){
+  if(!humState)return;const st=humState;humState=null;
+  clearTimeout(st.stopTimer);cancelAnimationFrame(st.raf);
+  try{st.proc&&st.proc.disconnect()}catch(_){}try{st.src&&st.src.disconnect()}catch(_){}
+  try{st.stream&&st.stream.getTracks().forEach(t=>t.stop())}catch(_){}
+  $('humRec').classList.remove('live');$('humRec').textContent='Hum to beat';$('humLvl').style.width='0%';$('humPitch').textContent='--';
+  if(cancel||!st.chunks.length)return;
+  const tot=st.chunks.reduce((a,b)=>a+b.length,0),merged=new Float32Array(tot);let off=0;
+  for(const c of st.chunks){merged.set(c,off);off+=c.length}
+  const c=actx(),ab=c.createBuffer(1,merged.length,c.sampleRate);ab.getChannelData(0).set(merged);
+  $('stat').textContent='Converting your hum to notes…';
+  decodeTo11k(ab).then(({pcm,sr})=>applyHum(ab,pcm,sr,st.t0,false))}
+
+async function startHumRec(){
+  if(humState){stopHumRec(false);return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    $('stat').textContent='Live mic is blocked in Claude artifacts — tap "Import voice memo" instead!';return}
+  const c=actx();let stream;
+  try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}
+  catch(_){$('stat').textContent='Mic blocked or denied — tap "Import voice memo" to load a recording from your phone.';return}
+  const sp=60/loop.bpm/4,countSec=16*sp,loopSec=steps()*sp;
+  play(true);
+  const src=c.createMediaStreamSource(stream),an=c.createAnalyser();an.fftSize=1024;src.connect(an);
+  const proc=c.createScriptProcessor(2048,1,1),mute=c.createGain();mute.gain.value=0;src.connect(proc);proc.connect(mute).connect(c.destination);
+  const chunks=[],buf=new Float32Array(an.fftSize);
+  proc.onaudioprocess=e=>{if(humState)chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)))};
+  $('humRec').classList.add('live');$('humRec').textContent='Stop hum';
+  $('stat').textContent=`Count-in 4 clicks, then hum ${loop.bars} bars ("da-da-da") along to the beat…`;
+  const meter=()=>{if(!humState)return;an.getFloatTimeDomainData(buf);let e=0;for(let i=0;i<buf.length;i++)e+=buf[i]*buf[i];
+    $('humLvl').style.width=Math.min(100,Math.round(Math.sqrt(e/buf.length)*420))+'%';humState.raf=requestAnimationFrame(meter)};
+  humState={stream,src,proc,chunks,t0:countSec+.08,raf:0,stopTimer:setTimeout(()=>stopHumRec(false),(countSec+loopSec+.22)*1000)};
+  meter()}
+
+$('humRec').onclick=startHumRec;
+$('humPick').onclick=()=>$('humFile').click();
+$('humFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  $('stat').textContent='Decoding voice memo…';
+  try{const ab=await actx().decodeAudioData(await f.arrayBuffer());const{pcm,sr}=await decodeTo11k(ab);applyHum(ab,pcm,sr,0,true)}
+  catch(_){$('stat').textContent='Could not read that audio file. Try m4a, mp3, wav or ogg.'}};
+$('humPlay').onclick=()=>{if(!humLast||!humLast.buf)return;const c=actx();if(humLast.src){try{humLast.src.stop()}catch(_){}}
+  const s=c.createBufferSource();s.buffer=humLast.buf;s.connect(c.destination);s.start(0,Math.max(0,humLast.t0));humLast.src=s};
+
+/* ---- Piano Roll & Nudge ---- */
+function prep(cv){const r=cv.getBoundingClientRect(),dpr=devicePixelRatio||1,W=Math.max(1,r.width),H=Math.max(1,r.height);
+  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);return{g,W,H}}
+const colv=v=>{const p=$('probe');p.style.color=`var(${v})`;return getComputedStyle(p).color};
+function band(g,notes,sx,y0,h){if(!notes.length)return;let lo=Math.min(...notes.map(n=>n[2])),hi=Math.max(...notes.map(n=>n[2]));if(hi-lo<12){lo-=(12-(hi-lo))>>1;hi=lo+12}
+  const rh=h/(hi-lo+1);for(const[s,l,m]of notes)g.fillRect(s*sx+1,y0+(hi-m)*rh,Math.max(3,l*sx-2),Math.max(2,rh))}
+function drawTl(){const{g,W,H}=prep($('tl')),S=steps(),sx=W/S;
+  for(let s=0;s<=S;s+=4){g.fillStyle=colv(s%16?'--grid':'--gridb');g.fillRect(s*sx,0,s%16?1:2,H)}
+  if(P&&P.cur&&P.cur[1]>=0){g.fillStyle=(humState||kbRecOn)?'#ff3b3055':'#00000022';g.fillRect((P.cur[1]%S)*sx,0,Math.max(2,sx),H)}
+  g.globalAlpha=.65;g.fillStyle=colv('--mute');for(const[s]of loop.drums)g.fillRect(s*sx+1,H-5,Math.max(2,sx-2),3);
+  g.globalAlpha=.85;g.fillStyle=colv('--blue');band(g,loop.bass.notes,sx,H*.56,H*.32);
+  g.globalAlpha=1;g.fillStyle=colv('--note');band(g,loop.lead.notes,sx,3,H*.5)}
+function drawHumRoll(){const cv=$('humRoll');if(!cv||$('s4').hidden)return;
+  const{g,W,H}=prep(cv),S=steps(),sx=W/S,notes=loop.lead.notes;
+  for(let s=0;s<=S;s+=4){g.fillStyle=s%16?'#ffffff16':'#ffffff36';g.fillRect(s*sx,0,s%16?1:2,H)}
+  if(P&&P.cur&&P.cur[1]>=0){g.fillStyle='#ffd40033';g.fillRect((P.cur[1]%S)*sx,0,Math.max(2,sx),H)}
+  if(!notes.length){g.fillStyle='#a8a293';g.font='14px Inter,sans-serif';g.textAlign='center';g.fillText('Your hummed melody blocks appear here',W/2,H/2+4);g.textAlign='start';updateNudge();return}
+  let lo=Math.min(...notes.map(n=>n[2]))-2,hi=Math.max(...notes.map(n=>n[2]))+2;while(hi-lo<12){lo--;hi++}
+  const rh=H/(hi-lo+1),yOf=m=>(hi-m)*rh;
+  notes.forEach((n,idx)=>{const[s,l,m]=n;g.fillStyle=idx===humSel?'#ff3b30':'#ffd400';
+    g.beginPath();g.roundRect(s*sx+1,yOf(m)+1,Math.max(6,l*sx-2),Math.max(7,rh-2),3);g.fill()});
+  updateNudge()}
+function updateNudge(){const ok=humSel>=0&&humSel<loop.lead.notes.length;
+  $('nUp').disabled=$('nDn').disabled=$('nDel').disabled=!ok;$('humPitch').textContent=ok?nm(loop.lead.notes[humSel][2]):'--'}
+$('humRoll').onclick=e=>{const notes=loop.lead.notes;if(!notes.length)return;
+  const r=$('humRoll').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  let lo=Math.min(...notes.map(n=>n[2]))-2,hi=Math.max(...notes.map(n=>n[2]))+2;while(hi-lo<12){lo--;hi++}
+  const sx=r.width/steps(),rh=r.height/(hi-lo+1);let hit=-1,best=1e9;
+  notes.forEach((n,i)=>{const nx=n[0]*sx,nw=Math.max(12,n[1]*sx),ny=(hi-n[2])*rh;
+    if(x>=nx-6&&x<=nx+nw+6){const dy=Math.abs(y-(ny+rh/2));if(dy<best&&dy<Math.max(20,rh*1.6)){best=dy;hit=i}}});
+  humSel=hit;if(hit>=0)SC.note(loop.lead,notes[hit][2],null,.25);drawHumRoll()};
+const nudge=d=>{if(humSel<0)return;const n=loop.lead.notes[humSel];if(!n)return;push();n[2]=clamp(n[2]+d,28,96);SC.note(loop.lead,n[2],null,.25);sync();drawHumRoll()};
+$('nUp').onclick=()=>nudge(1);$('nDn').onclick=()=>nudge(-1);
+$('nDel').onclick=()=>{if(humSel<0)return;push();loop.lead.notes.splice(humSel,1);humSel=-1;sync();drawHumRoll()};
+$('oDn').onclick=()=>{if(!loop.lead.notes.length)return;push();for(const n of loop.lead.notes)n[2]=clamp(n[2]-12,28,96);sync()};
+$('oUp').onclick=()=>{if(!loop.lead.notes.length)return;push();for(const n of loop.lead.notes)n[2]=clamp(n[2]+12,28,96);sync()};
+$('clrLead').onclick=()=>{push();loop.lead.notes=[];humSel=-1;sync();$('stat').textContent='Melody cleared. Undo brings it back.'};
+
+/* ---- Optional Mini Keyboard (inside Step 4 details) ---- */
+let keys=[];const ptr=new Map();
+function buildKb(){const kb=$('kb'),W=kb.clientWidth;if(W<20)return;const nW=clamp(Math.floor(W/42),8,15),ww=W/nW;keys=[];kb.textContent='';
+  let m=loop.lead.low,i=0;while(i<nW){if(WHITE.includes(pc(m))){keys.push({m,x:i*ww,w:ww,black:false});i++}else keys.push({m,x:i*ww-ww*.3,w:ww*.6,black:true});m++}
+  for(const k of keys){const d=document.createElement('div');d.className=k.black?'k':'w';d.style.left=k.x+'px';d.style.width=k.w+'px';if(!k.black&&pc(k.m)===0)d.textContent=nm(k.m);k.el=d;kb.append(d)}}
+function keyAt(x,y){const kb=$('kb');if(y<kb.clientHeight*.6)for(const k of keys)if(k.black&&x>=k.x&&x<k.x+k.w)return k;return keys.find(k=>!k.black&&x>=k.x&&x<k.x+k.w)||null}
+function posAt(){const c=actx();let t=c.currentTime-(c.outputLatency||c.baseLatency||.03),e=P.hist[0];for(const h of P.hist)if(h[0]<=t)e=h;return e[1]+(t-e[0])/e[2]}
+$('kbRec').onclick=()=>{if(kbRecOn){kbRecOn=false;$('kbRec').setAttribute('aria-pressed','false');return}push();kbRecOn=true;$('kbRec').setAttribute('aria-pressed','true');if(!P)play(true)};
+$('kb').onpointerdown=e=>{e.preventDefault();const r=$('kb').getBoundingClientRect(),k=keyAt(e.clientX-r.left,e.clientY-r.top);if(!k)return;
+  const rel=SC.hold(loop.lead,k.m);k.el.classList.add('on');let rn=null;
+  if(kbRecOn&&P){const abs=posAt(),sn=loop.snap;if(abs>=-sn/2){const qa=Math.round(abs/sn)*sn,s=((qa%steps())+steps())%steps();
+    rn=[s,sn,k.m];loop.lead.notes.push(rn);if(qa>=P.next)skip.add(rn);save();drawTl();drawHumRoll()}}
+  ptr.set(e.pointerId,{k,rel,rn,abs:P?posAt():0})};
+$('kb').onpointerup=$('kb').onpointercancel=e=>{const p=ptr.get(e.pointerId);if(!p)return;p.rel&&p.rel();p.k.el.classList.remove('on');
+  if(p.rn&&P){const l=Math.round((posAt()-p.abs)/loop.snap)*loop.snap;p.rn[1]=clamp(l,loop.snap,steps()-p.rn[0]);save();drawTl();drawHumRoll()}ptr.delete(e.pointerId)};
+$('kbDrawer').ontoggle=()=>{if($('kbDrawer').open)setTimeout(buildKb,30)};
+
+/* ---- Step 5: Real Beat + Simple Auto-Bass ---- */
+$('beatPick').onclick=e=>{const b=e.target.closest('button');if(!b)return;push();loop.beat=b.dataset.beat;loop.drums=beatNotes(loop.beat,loop.bars);sync();play()};
+SC.kits.forEach(k=>{const b=document.createElement('button');b.className='chip';b.textContent=k.label;b.dataset.kit=k.id;
+  b.onclick=()=>{loop.kit=k.id;dSpec=null;sync();SC.note(drumSpec(),36,null,.25);SC.note(drumSpec(),38,actx().currentTime+.22,.2)};$('kitPick').append(b)});
+$('autoBassBtn').onclick=()=>{push();const r=36+NAMES.indexOf(loop.root),sc=MOODS[loop.mood].scale,out=[],S=steps();
+  for(let bar=0;bar<loop.bars;bar++){const off=bar*16,iv=bar%4===2?sc[Math.min(3,sc.length-1)]:bar%4===3?sc[Math.min(4,sc.length-1)]:0;
+    const m=r+iv;out.push([off,4,m],[off+6,2,m],[off+8,4,m],[off+14,2,r+sc[Math.min(2,sc.length-1)]])}
+  loop.bass.notes=out.filter(n=>n[0]<S);sync();play()};
+$('clrBassBtn').onclick=()=>{push();loop.bass.notes=[];sync()};
+
+/* ---- Step 6: Claude Elaborate + Library + Cloud Handoff ---- */
+const songOf=title=>({format:'hum2loop/1',title:title||'My loop',bpm:loop.bpm,steps:steps(),key:keyStr(),melody:loop.lead.notes.slice().sort((a,b)=>a[0]-b[0]),
+  tracks:[{name:'Drums',role:'drums',inst:loop.kit,vol:.85,notes:loop.drums},{name:'Melody',role:'lead',inst:loop.lead.inst,vol:loop.lead.vol,notes:loop.lead.notes},
+    {name:'Bass',role:'bass',inst:loop.bass.inst,vol:loop.bass.vol,notes:loop.bass.notes},{name:'Chords',role:'harmony',inst:loop.chords.inst,vol:loop.chords.vol,notes:loop.chords.notes}].filter(t=>t.notes.length),source:loop});
+const resSong=()=>({format:'hum2loop/1',title:res.title,bpm:res.bpm,steps:res.steps,key:keyStr(),echo:res.echo,melody:loop.lead.notes.slice().sort((a,b)=>a[0]-b[0]),
+  layers:res.layers||undefined,defaultLayer:res.defaultLayer||undefined,tracks:res.tracks.map(({name,role,inst,vol,pan,fx,notes})=>({name,role,inst,vol,pan,fx,notes})),source:loop});
+const songJSON=()=>JSON.stringify(res?resSong():songOf($('title').value.trim()));
+function prompt(){const bars=+$('len').value||loop.bars,S=bars*16,f=a=>JSON.stringify(a.slice().sort((x,y)=>x[0]-y[0]));
+  const ins=SC.instruments.map(i=>`${i.id} (${i.label}, ${i.group})`).join(', '),kits=SC.kits.map(k=>k.id).join(', ');
+  return `Arrange background music for a browser game from a loop Adam hummed and built in Loop Maker. The game engine synthesises every sound, so choose instruments by id.
+Tempo ${loop.bpm} BPM. Key: ${loop.root} ${MOODS[loop.mood].label} (${keyStr()}). His loop is ${loop.bars} bar(s) of 16 sixteenth-note steps (${steps()} steps). Notes are [startStep, lengthSteps, midi].
+Melody (${loop.lead.inst}): ${f(loop.lead.notes)}
+Bass (${loop.bass.inst}): ${f(loop.bass.notes)}
+Chords (${loop.chords.inst}): ${f(loop.chords.notes)}
+Drums (${loop.kit} kit; 36 kick, 37 rim, 38 snare, 39 clap, 42 hat, 46 open hat, 49 crash, 51 ride, 45/47/50 toms): ${f(loop.drums)}
+Style: ${$('style').value||'8-bit chiptune'}. Make a ${bars}-bar loop (${S} steps).
+Instruments: ${ins}. Drum kits: ${kits}.
+Rules: his hummed melody is the core. Fix tiny timing slips or stray notes while keeping the tune clearly recognisable; play it first, repeat to fill, and vary slightly in later bars. Keep or enhance his bass and drums with fills into each phrase. Add parts so it sounds finished (arpeggio, pad, counter-melody). Keep lead melodies in midi 60-88 so they carry on phone speakers. Notes may have a 4th value velocity 0.1-1.
+Also make mood layers for the game: "calm" (gentle, no/light drums), "fight" (full energetic track), and "boss" (fight + extra intensity). Set defaultLayer to "fight".
+Mix: vol 0.1-1, pan -1..1, fx {reverb 0-0.5, echo 0-0.4, chorus 0-0.5}. Loop seamlessly. 0 <= start < ${S}, start+length <= ${S}, midi 28-100. Max 12 tracks with unique names.
+Reply with JSON only, no prose or code fences: {"title":string,"bpm":number,"steps":${S},"comment":"one short sentence","echo":"1/8d","defaultLayer":"fight","layers":{"calm":[track names],"fight":[...],"boss":[...]},"tracks":[{"name":string,"role":"lead|bass|harmony|counter|drums","inst":string,"vol":number,"pan":number,"fx":{"reverb":number,"echo":number,"chorus":number},"notes":[[start,length,midi,velocity?]]}]}`}
+
+function clean(j,S){const st=clamp((S|0)||(j.steps|0)||64,16,512),seen=new Set();
+  const tracks=(Array.isArray(j.tracks)?j.tracks:[]).slice(0,12).map(t=>{const role=String(t.role||'');let name=String(t.name||role||'Track').slice(0,24);while(seen.has(name))name+='+';seen.add(name);
+    const drums=role==='drums'||t.wave==='drums'||KIT_SET.has(t.inst),inst=drums?(KIT_SET.has(t.inst)?t.inst:'punchy'):INST_SET.has(t.inst)?t.inst:(role==='bass'?'pulsebass':'chip');
+    const fx={};if(t.fx&&typeof t.fx==='object')for(const k of['reverb','echo','chorus'])if(+t.fx[k]>0)fx[k]=clamp(+t.fx[k],0,.8);
+    return{name,role:drums?'drums':role,inst,vol:clamp(+t.vol||.6,.05,1),pan:clamp(+t.pan||0,-1,1),fx:Object.keys(fx).length?fx:undefined,muted:false,
+      notes:(Array.isArray(t.notes)?t.notes:[]).filter(n=>Array.isArray(n)&&n.length>=3).map(n=>{const q=[n[0]|0,Math.max(1,n[1]|0),n[2]|0];if(n[3]!=null&&+n[3]>0&&+n[3]<1)q.push(Math.round(+n[3]*100)/100);return q}).filter(([s,,m])=>s>=0&&s<st&&m>=24&&m<=108).slice(0,3000)}}).filter(t=>t.notes.length);
+  if(!tracks.length)throw new Error('empty');const names=new Set(tracks.map(t=>t.name).concat(tracks.map(t=>t.role)));let layers=null;
+  if(j.layers&&typeof j.layers==='object'){layers={};for(const[k,v]of Object.entries(j.layers).slice(0,6))if(Array.isArray(v)){const a=v.map(String).filter(x=>names.has(x));if(a.length)layers[String(k).slice(0,16)]=a}if(!Object.keys(layers).length)layers=null}
+  return{title:String(j.title||'Untitled loop').slice(0,60),bpm:clamp(+j.bpm||loop.bpm,50,220),steps:st,comment:String(j.comment||'').slice(0,200),echo:['1/8d','1/8','1/4','1/16'].includes(j.echo)?j.echo:'1/8d',
+    layers,defaultLayer:layers&&layers[j.defaultLayer]?j.defaultLayer:layers&&layers.fight?'fight':undefined,tracks}}
+
+const ROLECOL={lead:'--note',bass:'--blue',harmony:'--teal',counter:'--red',drums:'--mute'},tcol=(t,i)=>colv(ROLECOL[t.role]||['--note','--red','--blue','--teal'][i%4]);
+function drawSong(){const cv=$('song');if(!cv||$('s6').hidden)return;const{g,W,H}=prep(cv);
+  if(!res){g.fillStyle=colv('--mute');g.font='15px Inter,sans-serif';g.textAlign='center';g.fillText("AI arrangement appears here",W/2,H/2);g.textAlign='start';return}
+  const on=resP?new Map(resP.tracks.map(t=>[t.name,t.on&&!t.muted])):null,pit=res.tracks.filter(t=>t.role!=='drums').flatMap(t=>t.notes);
+  let lo=48,hi=72;if(pit.length){lo=Math.min(...pit.map(n=>n[2]))-1;hi=Math.max(...pit.map(n=>n[2]))+1}
+  const bot=res.tracks.some(t=>t.role==='drums')?34:4,sx=W/res.steps,rh=(H-bot-4)/(hi-lo+1);
+  for(let s=0;s<=res.steps;s+=4){g.fillStyle=colv(s%16?'--grid':'--gridb');g.fillRect(s*sx,0,s%16?1:2,H)}
+  if(resP&&resP.playing){g.fillStyle='#ff3b3044';g.fillRect(resP.step*sx,0,Math.max(2,sx),H)}
+  res.tracks.forEach((t,i)=>{g.globalAlpha=on&&!on.get(t.name)?.12:.9;g.fillStyle=tcol(t,i);
+    if(t.role==='drums'){for(const[s,,m]of t.notes)g.fillRect(s*sx,H-bot+3+(m<37?2:m<41?1:0)*10,Math.max(2,sx-1),7)}
+    else for(const[s,l,m]of t.notes)g.fillRect(s*sx,4+(hi-m)*rh,Math.max(2,l*sx-1),Math.max(2,rh-1))});g.globalAlpha=1}
+function renderRes(){const box=$('tracks'),mb=$('moods');box.textContent='';mb.textContent='';if(!res)return;resP=SC.load(resSong());
+  const moods=Object.keys(res.layers||{});$('moodRow').hidden=!moods.length;
+  for(const m of[...moods,'all']){const b=document.createElement('button');b.className='chip';b.textContent=m==='all'?'Everything':m[0].toUpperCase()+m.slice(1);
+    b.setAttribute('aria-pressed',String((resP.layer||'all')===m));
+    b.onclick=()=>{resP.setLayer(m==='all'?null:m,1);for(const x of mb.children)x.setAttribute('aria-pressed',String(x===b));if(!resP.playing)playRes();drawSong()};mb.append(b)}
+  res.tracks.forEach((t,i)=>{const b=document.createElement('button');b.className='chip tk';b.setAttribute('aria-pressed','true');
+    const s=document.createElement('span');s.className='sw';s.style.background=tcol(t,i);b.append(s,`${t.name} · ${t.inst}`);
+    b.onclick=()=>{t.muted=!t.muted;resP.mute(t.name,t.muted);b.setAttribute('aria-pressed',String(!t.muted));drawSong()};box.append(b)})}
+function playRes(){if(!resP)return;if(P)stop(true);resP.play();const f=()=>{drawSong();if(resP&&resP.playing)resRaf=requestAnimationFrame(f)};cancelAnimationFrame(resRaf);f();ui()}
+async function ask(msgs,S){stop();$('go').disabled=$('revB').disabled=true;$('astat').textContent='Claude is arranging…';
+  try{const r=await sample(msgs,{modelTier:'default',cache:false,onText:({text})=>{$('astat').textContent=`Writing arrangement… ${text.length} chars`}});
+    const t=r.text,a=t.indexOf('{'),b=t.lastIndexOf('}');if(a<0)throw new Error('nojson');res=clean(JSON.parse(t.slice(a,b+1)),S);
+    hist=[...(Array.isArray(msgs)?msgs:[{role:'user',content:msgs}]),{role:'assistant',content:t.slice(a,b+1)}];
+    $('astat').textContent=`${res.title} · ${res.bpm} BPM · ${res.steps/16} bars. ${res.comment}`;$('title').value=res.title;renderRes();drawSong();playRes()}
+  catch(e){$('astat').textContent=e&&e.code==='rate_limited'?'Too many requests — wait a minute.':'Arrangement failed — try again.'}ui()}
+
+$('styles').innerHTML=STYLES.map(s=>`<button class="chip">${s}</button>`).join('');
+$('styles').onclick=e=>{const b=e.target.closest('button');if(b)$('style').value=b.textContent};
+$('go').onclick=()=>{if(!['lead','bass','chords'].some(id=>loop[id].notes.length)){$('astat').textContent='Hum a melody in Step 4 first!';return}ask(prompt(),(+$('len').value||loop.bars)*16)};
+$('revB').onclick=()=>{const v=$('rev').value.trim();if(!v||!res)return;ask([...hist,{role:'user',content:`Revise the arrangement: ${v}. Same JSON format, JSON only.`}],res.steps)};
+$('pRes').onclick=playRes;$('pMine').onclick=()=>play();$('stop2').onclick=()=>stop();
+$('title').oninput=e=>{if(res)res.title=e.target.value.slice(0,60)||'Untitled loop'};
+const copyJson=async()=>{try{await navigator.clipboard.writeText(songJSON());$('astat').textContent='Song JSON copied.'}catch(_){$('astat').textContent='Copy blocked by browser.'}};
+$('cpy').onclick=$('cpy2').onclick=copyJson;
+$('pasteBtn').onclick=()=>{const box=$('pasteBox'),open=box.hidden;box.hidden=!open;$('pasteBtn').setAttribute('aria-expanded',String(open));if(open)$('pasteTa').focus()};
+$('pasteGo').onclick=()=>{const raw=$('pasteTa').value.trim();if(!raw)return;
+  try{const j=JSON.parse(raw);push();loop=normLoop(j.source||j);res=j.layers?clean(j,j.steps):null;sync();renderRes();drawSong();
+    $('pasteTa').value='';$('pasteBox').hidden=true;$('pasteBtn').setAttribute('aria-expanded','false');$('astat').textContent='Loaded loop from JSON.'}
+  catch(_){$('astat').textContent='Could not read that JSON. Copy it again on the live-mic page.'}};
+$('sendClaudeBtn').onclick=async()=>{const js=JSON.stringify(songOf($('title').value.trim()));
+  try{await navigator.clipboard.writeText(js);$('astat').textContent='Loop copied. In Claude Loop Maker, open step 6 and tap Paste JSON.'}catch(_){$('astat').textContent='Copy blocked: tap Copy loop JSON, then open Claude Loop Maker.'}
+  window.open(CLAUDE_URL+'#loop='+btoa(unescape(encodeURIComponent(JSON.stringify(loop)))),'_blank')};
+$('save').onclick=async()=>{if(!db)return;$('save').disabled=true;const s=JSON.parse(songJSON()),title=$('title').value.trim()||s.title;s.title=title;
+  const id=(title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'loop').slice(0,40);
+  try{await db.collection('songs').doc(id).set({title,bpm:s.bpm,steps:s.steps,key:s.key,savedAt:Date.now(),json:JSON.stringify(s)});$('astat').textContent=`Saved "${title}" to the library.`}
+  catch(_){$('astat').textContent='Saving failed — try again.'}ui()};
+
+/* ---- Sync & Transport ---- */
+function ui(){
+  const on=!!P;$('play').classList.toggle('on',on);$('play').textContent=on?'■':'▶';
+  $('pillInfo').textContent=`${loop.bpm} BPM · ${keyStr()} · ${loop.bars} bars`;
+  $('undo').disabled=!undoS.length;$('go').disabled=!sample;$('revB').disabled=!res||!sample;$('pRes').disabled=!res;
+  $('save').disabled=!db;$('save').textContent=res?'Save AI version':'Save my loop';
+  $('bpmRange').value=loop.bpm;$('bpm').value=loop.bpm;$('snap').value=loop.snap;
+  $('toneLabel').textContent=`${loop.root} ${MOODS[loop.mood].label} — tap to hear your starting note before humming.`;
+  $('bassStat').textContent=loop.bass.notes.length?`Bass active (${loop.bass.notes.length} notes).`:'Optional bass foundation under your melody.';
+  document.querySelectorAll('#speedPresets button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.bpm===loop.bpm)));
+  document.querySelectorAll('[data-bars]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.bars===loop.bars)));
+  document.querySelectorAll('#moodPick button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mood===loop.mood)));
+  document.querySelectorAll('#rootPick button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.root===loop.root)));
+  document.querySelectorAll('#instPick button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.inst===loop.lead.inst)));
+  document.querySelectorAll('#beatPick button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.beat===loop.beat)));
+  document.querySelectorAll('#kitPick button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.kit===loop.kit)));
+  for(const b of $('stepper').children){const n=+b.dataset.s;b.classList.toggle('done',(n===4&&loop.lead.notes.length>0)||(n===5&&loop.drums.length>0)||(n===6&&!!res))}}
+function sync(){save();ui();drawTl();if(stepNum===4)drawHumRoll()}
+$('play').onclick=()=>{P?stop():play()};
+$('undo').onclick=()=>{if(!undoS.length)return;loop=JSON.parse(undoS.pop());dSpec=null;humSel=-1;sync()};
+new ResizeObserver(()=>{drawTl();drawHumRoll();drawSong()}).observe($('tl'));
+
+/* ---- Claude Capabilities & Live-Mic Environment Detection ---- */
+const use=n=>window.claude&&claude.use?claude.use(n).catch(()=>null):Promise.resolve(null);
+use('sample').then(s=>{sample=s;$('sendCloudBox').hidden=!!s;
+  $('astat').textContent=s?'Pick a vibe and tap Elaborate with Claude.':'Running outside Claude — use "Open in Claude Loop Maker" above to arrange & save.';ui()});
+use('db').then(d=>{db=d;ui();if(!d){$('libstat').textContent='Saved library is available inside Claude Loop Maker.';return}
+  d.collection('songs').orderBy('savedAt','desc').limit(50).onSnapshot(snap=>{
+    const docs=snap.docs||snap,box=$('lib');box.textContent='';
+    if(!docs.length){box.innerHTML='<p class="stat">No saved songs yet.</p>';return}
+    for(const dc of docs){const v=dc.data?dc.data():dc,b=document.createElement('button');b.className='song';
+      const n=document.createElement('b');n.textContent=v.title||'Untitled';
+      const m=document.createElement('span');m.textContent=`${v.bpm} BPM · ${(v.steps||0)/16} bars`;
+      b.append(n,m);b.onclick=()=>openSong(v);box.append(b)}},
+    ()=>{$('libstat').textContent='Could not load the library.'})});
+function openSong(v){try{const j=JSON.parse(v.json);stop();push();if(j.source&&typeof j.source==='object')loop=normLoop(j.source);
+  const mine=j.source&&!j.layers;res=mine?null:clean(j,j.steps);if(res)res.title=String(j.title||v.title||'Untitled').slice(0,60);
+  $('title').value=String(j.title||v.title||'');hist=res?[{role:'user',content:prompt()},{role:'assistant',content:JSON.stringify(resSong())}]:[];
+  $('astat').textContent=`Loaded "${v.title||'song'}".`;sync();renderRes();goStep(6)}catch(_){$('astat').textContent='Could not open that song.'}}
+if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+  $('humTip').innerHTML='Live mic is blocked in Claude artifacts — tap <b>Import voice memo</b> to load a phone recording, or hum live on the GitHub Pages copy.'}
+
+SC.unlockOnFirstInput();goStep(stepNum);sync();
+}
+</script>
+</body></html>

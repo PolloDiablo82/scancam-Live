@@ -1,5 +1,7 @@
 # Scan Cam Live
 
+
+**Other project in this repo:** `loopmaker/` is Loop Maker Live, the live-mic copy of Adam's music Loop Maker (soundcard project, not Scan Cam). It lives at https://pollodiablo82.github.io/scancam-live/loopmaker/ . When updating Scan Cam, leave `loopmaker/` alone and never replace or wipe the whole repo.
 Live-camera capture page for Scan Lab, live at https://pollodiablo82.github.io/scancam-live/ (repo `PolloDiablo82/scancam-live`, GitHub Pages from `main` root). Artifact pages cannot open the camera or read motion sensors, so this one is hosted outside Claude. Run `python3 tools/secretscan.py <repo> --history` before every push. `mat.pdf` is made by `2dengine/tools/scanlab/mat/make_mat.py`.
 
 v9 (2026-11-27, Adam: "I don't see my scoopy as a project that I can click on and then add detail shots"):
